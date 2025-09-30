@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "redis_robot_comm"
+version = "0.1.0"
+description = "Redis-based communication package for robot object detection and image streaming"
+authors = [
+    { name = "Daniel Gaida", email = "daniel.gaida@th-koeln.de" }
+]
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.8"
+
+dependencies = [
+    "redis>=4.0.0",
+    "opencv-python>=4.5.0",
+    "numpy>=1.20.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/dgaida/redis_robot_comm"
+Repository = "https://github.com/dgaida/redis_robot_comm"
+
+[tool.setuptools]
+packages = ["redis_robot_comm"]
+
+[tool.setuptools.package-data]
+redis_robot_comm = ["py.typed"]
