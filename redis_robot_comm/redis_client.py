@@ -19,6 +19,7 @@ class RedisMessageBroker:
         db (int): Datenbank-Index (Standard: 0).
     """
     def __init__(self, host='localhost', port=6379, db=0):
+        self.verbose = False
         self.client = redis.Redis(host=host, port=port, db=db, decode_responses=True)
 
     def publish_objects(self, objects: List[Dict], camera_pose: dict = None):
@@ -40,7 +41,8 @@ class RedisMessageBroker:
         try:
             # All values must be strings for Redis Streams
             result = self.client.xadd('detected_objects', message)
-            print(f"Published {len(objects)} objects to Redis stream: {result}")
+            if self.verbose:
+                print(f"Published {len(objects)} objects to Redis stream: {result}")
             return result
         except Exception as e:
             print(f"Error publishing objects: {e}")
@@ -59,7 +61,8 @@ class RedisMessageBroker:
             # Get the latest message from the stream
             messages = self.client.xrevrange('detected_objects', count=1)
             if not messages:
-                print("No messages found in stream")
+                if self.verbose:
+                    print("No messages found in stream")
                 return []
 
             # Parse the latest message
@@ -70,13 +73,15 @@ class RedisMessageBroker:
             current_time = time.time()
 
             if current_time - msg_timestamp > max_age_seconds:
-                print(f"Latest objects too old: {current_time - msg_timestamp:.2f}s > {max_age_seconds}s")
+                if self.verbose:
+                    print(f"Latest objects too old: {current_time - msg_timestamp:.2f}s > {max_age_seconds}s")
                 return []
 
             # Parse and return objects
             objects_json = fields.get('objects', '[]')
             objects = json.loads(objects_json)
-            print(f"Retrieved {len(objects)} fresh objects")
+            if self.verbose:
+                print(f"Retrieved {len(objects)} fresh objects")
             return objects
 
         except Exception as e:
@@ -109,11 +114,13 @@ class RedisMessageBroker:
                 objects = json.loads(objects_json)
                 all_objects.extend(objects)
 
-            print(f"Retrieved {len(all_objects)} objects from timerange")
+            if self.verbose:
+                print(f"Retrieved {len(all_objects)} objects from timerange")
             return all_objects
 
         except Exception as e:
-            print(f"Error getting objects in timerange: {e}")
+            if self.verbose:
+                print(f"Error getting objects in timerange: {e}")
             return []
 
     def subscribe_objects(self, callback):
@@ -123,7 +130,8 @@ class RedisMessageBroker:
             callback (Callable): Callback-Funktion, die ein Dict mit Objekten,
                 Kamerapose und Zeitstempel erhält.
         """
-        print("Starting to listen for object detections...")
+        if self.verbose:
+            print("Starting to listen for object detections...")
         last_id = '$'  # Start from newest
 
         try:
@@ -168,7 +176,8 @@ class RedisMessageBroker:
         try:
             # Delete the entire stream
             result = self.client.delete('detected_objects')
-            print(f"Cleared detected_objects stream: {result}")
+            if self.verbose:
+                print(f"Cleared detected_objects stream: {result}")
             return result
         except Exception as e:
             print(f"Error clearing stream: {e}")
@@ -182,7 +191,8 @@ class RedisMessageBroker:
         """
         try:
             info = self.client.xinfo_stream('detected_objects')
-            print(f"Stream info: {info}")
+            if self.verbose:
+                print(f"Stream info: {info}")
             return info
         except Exception as e:
             print(f"Error getting stream info: {e}")
@@ -196,7 +206,8 @@ class RedisMessageBroker:
         """
         try:
             pong = self.client.ping()
-            print(f"Redis connection test: {'OK' if pong else 'FAILED'}")
+            if self.verbose:
+                print(f"Redis connection test: {'OK' if pong else 'FAILED'}")
             return pong
         except Exception as e:
             print(f"Redis connection failed: {e}")

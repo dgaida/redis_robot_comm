@@ -63,6 +63,8 @@ class RedisImageStreamer:
         self.client = redis.Redis(host=host, port=port, decode_responses=True)
         self.stream_name = stream_name
 
+        self.verbose = False
+
     # --------------------------------------------------------------------
     # Publishing API
     # --------------------------------------------------------------------
@@ -147,7 +149,9 @@ class RedisImageStreamer:
         # Publish to Redis stream (automatically handles variable sizes)
         stream_id = self.client.xadd(self.stream_name, message, maxlen=maxlen)
 
-        print(f"Published {width}x{height} image ({compressed_size} bytes)")
+        if self.verbose:
+            print(f"Published {width}x{height} image ({compressed_size} bytes)")
+
         return stream_id
 
     # --------------------------------------------------------------------
@@ -186,7 +190,8 @@ class RedisImageStreamer:
             return self._decode_variable_image(fields)
 
         except Exception as e:
-            print(f"Error getting latest image: {e}")
+            if self.verbose:
+                print(f"Error getting latest image: {e}")
             return None
 
     def subscribe_variable_images(self, callback, block_ms: int = 1000, start_after: str = "$"):
@@ -220,7 +225,8 @@ class RedisImageStreamer:
         >>> streamer.subscribe_variable_images(on_frame, block_ms=500)
         """
         last_id = start_after
-        print("Subscribing to variable-size image stream...")
+        if self.verbose:
+            print("Subscribing to variable-size image stream...")
 
         while True:
             try:
@@ -250,10 +256,12 @@ class RedisImageStreamer:
                         last_id = msg_id
 
             except KeyboardInterrupt:
-                print("Stopped subscribing to images")
+                if self.verbose:
+                    print("Stopped subscribing to images")
                 break
             except Exception as e:
-                print(f"Error in image subscription: {e}")
+                if self.verbose:
+                    print(f"Error in image subscription: {e}")
                 time.sleep(0.1)
 
     # --------------------------------------------------------------------
@@ -311,7 +319,8 @@ class RedisImageStreamer:
             return image, metadata
 
         except Exception as e:
-            print(f"Error decoding variable image: {e}")
+            if self.verbose:
+                print(f"Error decoding variable image: {e}")
             return None
 
     def get_stream_stats(self) -> Dict[str, Any]:
