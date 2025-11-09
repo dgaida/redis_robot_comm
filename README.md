@@ -12,8 +12,7 @@ Das Package eignet sich z. B. für Robotik-Szenarien, in denen Detektionen und K
 
 ## Badges
 
-[![PyPI version](https://img.shields.io/pypi/v/redis_robot_comm.svg)](https://pypi.org/project/redis_robot_comm/)
-[![Build Status](https://github.com/yourusername/redis_robot_comm/actions/workflows/python-package.yml/badge.svg)](https://github.com/yourusername/redis_robot_comm/actions)
+[![Build Status](https://github.com/dgaida/redis_robot_comm/actions/workflows/python-package.yml/badge.svg)](https://github.com/dgaida/redis_robot_comm/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
@@ -116,6 +115,7 @@ redis_robot_comm/
 │   ├── redis_client.py
 │   ├── redis_image_streamer.py
 │
+├── tests/
 ├── main.py         # Beispiel zur Nutzung
 ├── pyproject.toml
 └── README.md
