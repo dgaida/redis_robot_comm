@@ -3,13 +3,13 @@ name: Tests
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
     paths-ignore:
       - '**.md'
       - 'LICENSE'
       - '.gitignore'
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   test:

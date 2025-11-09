@@ -343,9 +343,11 @@ class RedisImageStreamer:
         try:
             info = self.client.xinfo_stream(self.stream_name)
             return {
-                'total_messages': info['length'],
-                'first_entry_id': info['first-entry'][0] if info['first-entry'] else None,
-                'last_entry_id': info['last-entry'][0] if info['last-entry'] else None
+                'total_messages': info.get('length', 0),
+                'first_entry_id': info.get('first-entry', [None])[0],
+                'last_entry_id': info.get('last-entry', [None])[0]
             }
-        except:
-            return {'error': 'Stream not found or empty'}
+        except Exception as e:
+            return {
+                'error': f'Stream not found or empty: {e}'
+            }
