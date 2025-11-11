@@ -73,6 +73,8 @@ latest = broker.get_latest_objects()
 print("Neueste Objekte:", latest)
 ```
 
+![Vision Detection Workflow](docs/workflow_detector.png)
+
 ---
 
 ### 2. Bild-Streaming mit `RedisImageStreamer`
@@ -98,6 +100,8 @@ if result:
     cv2.waitKey(0)
 ```
 
+![Image Streaming Workflow](docs/workflow_streamer.png)
+
 ---
 
 ### 3. Beispielskript
@@ -105,7 +109,7 @@ if result:
 Im Repository befindet sich eine **main.py**, die zeigt, wie der `RedisMessageBroker` verwendet wird:
 
 ```bash
-python redis_robot_comm/main.py
+python main.py
 ```
 
 ---
