@@ -23,24 +23,28 @@ def test_redis_broker():
     # Test publishing
     test_objects = [
         {
-            'id': 'obj_001',
-            'class_name': 'cube',
-            'confidence': 0.95,
-            'position': {'x': 0.1, 'y': 0.2, 'z': 0.05},
-            'timestamp': time.time()
+            "id": "obj_001",
+            "class_name": "cube",
+            "confidence": 0.95,
+            "position": {"x": 0.1, "y": 0.2, "z": 0.05},
+            "timestamp": time.time(),
         },
         {
-            'id': 'obj_002',
-            'class_name': 'cylinder',
-            'confidence': 0.87,
-            'position': {'x': 0.3, 'y': 0.1, 'z': 0.05},
-            'timestamp': time.time()
-        }
+            "id": "obj_002",
+            "class_name": "cylinder",
+            "confidence": 0.87,
+            "position": {"x": 0.3, "y": 0.1, "z": 0.05},
+            "timestamp": time.time(),
+        },
     ]
 
     test_camera_pose = {
-        'x': 0.0, 'y': 0.0, 'z': 0.5,
-        'roll': 0.0, 'pitch': 1.57, 'yaw': 0.0
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.5,
+        "roll": 0.0,
+        "pitch": 1.57,
+        "yaw": 0.0,
     }
 
     print("Publishing test objects...")
@@ -66,13 +70,13 @@ def test_image_subscription():
         print("Metadata:", metadata)
         # Display the image (press 'q' to quit)
         cv2.imshow("Subscribed Image", image)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             stop_flag.set()
 
     # Run the subscriber in its own thread
     subscriber_thread = threading.Thread(
         target=streamer.subscribe_variable_images,
-        kwargs={"callback": image_callback, "block_ms": 500}
+        kwargs={"callback": image_callback, "block_ms": 500},
     )
     subscriber_thread.start()
 

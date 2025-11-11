@@ -14,7 +14,7 @@ Why Redis Streams?
 Typical Use‑Case
 ----------------
 1. Capture a frame from a camera with OpenCV.
-2. Publish it with :func:`publish_image`.  
+2. Publish it with :func:`publish_image`.
 3. In a different process, either fetch the last frame with :func:`get_latest_image` or stream frames continuously with :func:`subscribe_variable_images`.
 
 Dependencies
@@ -59,7 +59,12 @@ class RedisImageStreamer:
     >>> print(f'Received frame {stream_id} with pose {meta["pose"]}')
     """
 
-    def __init__(self, host: str = 'localhost', port: int = 6379, stream_name: str = 'robot_camera'):
+    def __init__(
+        self,
+        host: str = "localhost",
+        port: int = 6379,
+        stream_name: str = "robot_camera",
+    ):
         self.client = redis.Redis(host=host, port=port, decode_responses=True)
         self.stream_name = stream_name
 
@@ -68,8 +73,14 @@ class RedisImageStreamer:
     # --------------------------------------------------------------------
     # Publishing API
     # --------------------------------------------------------------------
-    def publish_image(self, image: np.ndarray, metadata: Dict[str, Any] = None,
-                      compress_jpeg: bool = True, quality: int = 80, maxlen: int = 5) -> str:
+    def publish_image(
+        self,
+        image: np.ndarray,
+        metadata: Dict[str, Any] = None,
+        compress_jpeg: bool = True,
+        quality: int = 80,
+        maxlen: int = 5,
+    ) -> str:
         """
         Publish a single image frame to the Redis stream.
 
@@ -118,33 +129,32 @@ class RedisImageStreamer:
 
         if compress_jpeg:
             # Compress to JPEG (handles any size)
-            _, buffer = cv2.imencode('.jpg', image,
-                                     [cv2.IMWRITE_JPEG_QUALITY, quality])
-            image_data = base64.b64encode(buffer).decode('utf-8')
-            format_type = 'jpeg'
+            _, buffer = cv2.imencode(".jpg", image, [cv2.IMWRITE_JPEG_QUALITY, quality])
+            image_data = base64.b64encode(buffer).decode("utf-8")
+            format_type = "jpeg"
             compressed_size = len(buffer)
         else:
             # Raw image data
-            image_data = base64.b64encode(image.tobytes()).decode('utf-8')
-            format_type = 'raw'
+            image_data = base64.b64encode(image.tobytes()).decode("utf-8")
+            format_type = "raw"
             compressed_size = image.nbytes
 
         # Prepare message with dynamic image info
         message = {
-            'timestamp': str(timestamp),
-            'image_data': image_data,
-            'format': format_type,
-            'width': str(width),
-            'height': str(height),
-            'channels': str(channels),
-            'dtype': str(image.dtype),
-            'compressed_size': str(compressed_size),
-            'original_size': str(image.nbytes)
+            "timestamp": str(timestamp),
+            "image_data": image_data,
+            "format": format_type,
+            "width": str(width),
+            "height": str(height),
+            "channels": str(channels),
+            "dtype": str(image.dtype),
+            "compressed_size": str(compressed_size),
+            "original_size": str(image.nbytes),
         }
 
         # Add optional metadata
         if metadata:
-            message['metadata'] = json.dumps(metadata)
+            message["metadata"] = json.dumps(metadata)
 
         # Publish to Redis stream (automatically handles variable sizes)
         stream_id = self.client.xadd(self.stream_name, message, maxlen=maxlen)
@@ -230,11 +240,7 @@ class RedisImageStreamer:
 
         while True:
             try:
-                messages = self.client.xread(
-                    {self.stream_name: last_id},
-                    block=block_ms,
-                    count=1
-                )
+                messages = self.client.xread({self.stream_name: last_id}, block=block_ms, count=1)
 
                 for stream, msgs in messages:
                     for msg_id, fields in msgs:
@@ -244,12 +250,12 @@ class RedisImageStreamer:
 
                             # Prepare image info for callback
                             image_info = {
-                                'width': image.shape[1],
-                                'height': image.shape[0],
-                                'channels': image.shape[2] if len(image.shape) == 3 else 1,
-                                'timestamp': float(fields.get('timestamp', '0')),
-                                'compressed_size': int(fields.get('compressed_size', '0')),
-                                'original_size': int(fields.get('original_size', '0'))
+                                "width": image.shape[1],
+                                "height": image.shape[0],
+                                "channels": (image.shape[2] if len(image.shape) == 3 else 1),
+                                "timestamp": float(fields.get("timestamp", "0")),
+                                "compressed_size": int(fields.get("compressed_size", "0")),
+                                "original_size": int(fields.get("original_size", "0")),
                             }
 
                             callback(image, metadata, image_info)
@@ -288,15 +294,15 @@ class RedisImageStreamer:
         """
         try:
             # Extract image parameters
-            width = int(fields['width'])
-            height = int(fields['height'])
-            channels = int(fields['channels'])
-            format_type = fields['format']
+            width = int(fields["width"])
+            height = int(fields["height"])
+            channels = int(fields["channels"])
+            format_type = fields["format"]
 
             # Decode image data
-            image_data = base64.b64decode(fields['image_data'])
+            image_data = base64.b64decode(fields["image_data"])
 
-            if format_type == 'jpeg':
+            if format_type == "jpeg":
                 # Decode JPEG (automatically handles any size)
                 nparr = np.frombuffer(image_data, np.uint8)
                 image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
@@ -304,7 +310,7 @@ class RedisImageStreamer:
                     raise RuntimeError("JPEG decoding returned None")
             else:
                 # Decode raw image with specified dimensions
-                dtype = fields['dtype']
+                dtype = fields["dtype"]
                 if channels == 1:
                     shape = (height, width)
                 else:
@@ -313,8 +319,8 @@ class RedisImageStreamer:
 
             # Extract metadata if available
             metadata = {}
-            if 'metadata' in fields:
-                metadata = json.loads(fields['metadata'])
+            if "metadata" in fields:
+                metadata = json.loads(fields["metadata"])
 
             return image, metadata
 
@@ -343,11 +349,9 @@ class RedisImageStreamer:
         try:
             info = self.client.xinfo_stream(self.stream_name)
             return {
-                'total_messages': info.get('length', 0),
-                'first_entry_id': info.get('first-entry', [None])[0],
-                'last_entry_id': info.get('last-entry', [None])[0]
+                "total_messages": info.get("length", 0),
+                "first_entry_id": info.get("first-entry", [None])[0],
+                "last_entry_id": info.get("last-entry", [None])[0],
             }
         except Exception as e:
-            return {
-                'error': f'Stream not found or empty: {e}'
-            }
+            return {"error": f"Stream not found or empty: {e}"}

@@ -18,7 +18,8 @@ class RedisMessageBroker:
         port (int): Redis-Port (Standard: 6379).
         db (int): Datenbank-Index (Standard: 0).
     """
-    def __init__(self, host='localhost', port=6379, db=0):
+
+    def __init__(self, host="localhost", port=6379, db=0):
         self.verbose = False
         self.client = redis.Redis(host=host, port=port, db=db, decode_responses=True)
 
@@ -33,14 +34,14 @@ class RedisMessageBroker:
             str | None: ID der Nachricht im Stream oder None bei Fehler.
         """
         message = {
-            'timestamp': str(time.time()),  # Convert to string
-            'objects': json.dumps(objects),  # Serialize list to JSON string
-            'camera_pose': json.dumps(camera_pose) if camera_pose else json.dumps({})
+            "timestamp": str(time.time()),  # Convert to string
+            "objects": json.dumps(objects),  # Serialize list to JSON string
+            "camera_pose": json.dumps(camera_pose) if camera_pose else json.dumps({}),
         }
 
         try:
             # All values must be strings for Redis Streams
-            result = self.client.xadd('detected_objects', message)
+            result = self.client.xadd("detected_objects", message)
             if self.verbose:
                 print(f"Published {len(objects)} objects to Redis stream: {result}")
             return result
@@ -59,7 +60,7 @@ class RedisMessageBroker:
         """
         try:
             # Get the latest message from the stream
-            messages = self.client.xrevrange('detected_objects', count=1)
+            messages = self.client.xrevrange("detected_objects", count=1)
             if not messages:
                 if self.verbose:
                     print("No messages found in stream")
@@ -69,7 +70,7 @@ class RedisMessageBroker:
             msg_id, fields = messages[0]
 
             # Check if message is fresh enough
-            msg_timestamp = float(fields.get('timestamp', '0'))
+            msg_timestamp = float(fields.get("timestamp", "0"))
             current_time = time.time()
 
             if current_time - msg_timestamp > max_age_seconds:
@@ -78,7 +79,7 @@ class RedisMessageBroker:
                 return []
 
             # Parse and return objects
-            objects_json = fields.get('objects', '[]')
+            objects_json = fields.get("objects", "[]")
             objects = json.loads(objects_json)
             if self.verbose:
                 print(f"Retrieved {len(objects)} fresh objects")
@@ -106,11 +107,11 @@ class RedisMessageBroker:
             start_id = f"{int(start_timestamp * 1000)}-0"
             end_id = f"{int(end_timestamp * 1000)}-0"
 
-            messages = self.client.xrange('detected_objects', start_id, end_id)
+            messages = self.client.xrange("detected_objects", start_id, end_id)
 
             all_objects = []
             for msg_id, fields in messages:
-                objects_json = fields.get('objects', '[]')
+                objects_json = fields.get("objects", "[]")
                 objects = json.loads(objects_json)
                 all_objects.extend(objects)
 
@@ -132,30 +133,32 @@ class RedisMessageBroker:
         """
         if self.verbose:
             print("Starting to listen for object detections...")
-        last_id = '$'  # Start from newest
+        last_id = "$"  # Start from newest
 
         try:
             while True:
                 # Block for up to 1 second waiting for new messages
-                messages = self.client.xread({'detected_objects': last_id}, block=1000)
+                messages = self.client.xread({"detected_objects": last_id}, block=1000)
 
                 for stream, msgs in messages:
                     for msg_id, fields in msgs:
                         try:
                             # Parse objects from JSON
-                            objects_json = fields.get('objects', '[]')
+                            objects_json = fields.get("objects", "[]")
                             objects = json.loads(objects_json)
 
                             # Parse camera pose if available
-                            camera_pose_json = fields.get('camera_pose', '{}')
+                            camera_pose_json = fields.get("camera_pose", "{}")
                             camera_pose = json.loads(camera_pose_json)
 
                             # Call callback with parsed data
-                            callback({
-                                'objects': objects,
-                                'camera_pose': camera_pose,
-                                'timestamp': float(fields.get('timestamp', '0'))
-                            })
+                            callback(
+                                {
+                                    "objects": objects,
+                                    "camera_pose": camera_pose,
+                                    "timestamp": float(fields.get("timestamp", "0")),
+                                }
+                            )
 
                             last_id = msg_id
 
@@ -175,7 +178,7 @@ class RedisMessageBroker:
         """
         try:
             # Delete the entire stream
-            result = self.client.delete('detected_objects')
+            result = self.client.delete("detected_objects")
             if self.verbose:
                 print(f"Cleared detected_objects stream: {result}")
             return result
@@ -190,7 +193,7 @@ class RedisMessageBroker:
             dict | None: Stream-Info oder None bei Fehler.
         """
         try:
-            info = self.client.xinfo_stream('detected_objects')
+            info = self.client.xinfo_stream("detected_objects")
             if self.verbose:
                 print(f"Stream info: {info}")
             return info
