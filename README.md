@@ -208,7 +208,7 @@ def subscriber_loop():
     def callback(img, meta, info):
         if not on_frame(img, meta, info):
             stop_flag.set()
-    
+
     streamer.subscribe_variable_images(
         callback=callback,
         block_ms=500
@@ -323,7 +323,7 @@ def on_detection(data):
     objects = data["objects"]
     camera_pose = data["camera_pose"]
     timestamp = data["timestamp"]
-    
+
     print(f"Empfangen: {len(objects)} Objekte")
     for obj in objects:
         print(f"  - {obj['class_name']}: {obj['confidence']:.2f}")
