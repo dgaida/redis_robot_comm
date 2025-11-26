@@ -5,8 +5,7 @@ import pytest
 import numpy as np
 import cv2
 import json
-import time
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 from redis_robot_comm.redis_client import RedisMessageBroker
 from redis_robot_comm.redis_image_streamer import RedisImageStreamer
 
@@ -97,7 +96,7 @@ def test_get_latest_objects_verbose_success(monkeypatch, capsys):
     ]
     
     with patch("time.time", return_value=current_time + 0.5):
-        result = broker.get_latest_objects()
+        broker.get_latest_objects()
     
     captured = capsys.readouterr()
     assert "Retrieved 1 fresh objects" in captured.out
@@ -115,7 +114,7 @@ def test_get_objects_in_timerange_verbose(monkeypatch, capsys):
         ("2-0", {"objects": '[{"id": "obj_2"}]'})
     ]
     
-    result = broker.get_objects_in_timerange(1000.0, 2000.0)
+    broker.get_objects_in_timerange(1000.0, 2000.0)
     
     captured = capsys.readouterr()
     assert "Retrieved 2 objects from timerange" in captured.out
@@ -233,7 +232,7 @@ def test_get_stream_info_verbose(monkeypatch, capsys):
     broker.verbose = True
     
     mock_client.xinfo_stream.return_value = {"length": 10}
-    info = broker.get_stream_info()
+    broker.get_stream_info()
     
     captured = capsys.readouterr()
     assert "Stream info" in captured.out
@@ -247,7 +246,7 @@ def test_test_connection_verbose(monkeypatch, capsys):
     broker.verbose = True
     
     mock_client.ping.return_value = True
-    result = broker.test_connection()
+    broker.test_connection()
     
     captured = capsys.readouterr()
     assert "Redis connection test: OK" in captured.out
@@ -310,7 +309,7 @@ def test_publish_image_custom_maxlen(monkeypatch):
     image = np.zeros((50, 50, 3), dtype=np.uint8)
     mock_client.xadd.return_value = "1-0"
     
-    msg_id = streamer.publish_image(image, maxlen=10)
+    streamer.publish_image(image, maxlen=10)
     
     # Verify maxlen was passed to xadd
     call_kwargs = mock_client.xadd.call_args[1]
@@ -539,10 +538,10 @@ def test_custom_redis_connection(monkeypatch):
     mock_redis = MagicMock()
     monkeypatch.setattr("redis.Redis", mock_redis)
     
-    broker = RedisMessageBroker(host="custom-host", port=6380, db=2)
+    RedisMessageBroker(host="custom-host", port=6380, db=2)
     mock_redis.assert_called_with(host="custom-host", port=6380, db=2, decode_responses=True)
     
-    streamer = RedisImageStreamer(host="another-host", port=6381)
+    RedisImageStreamer(host="another-host", port=6381)
     # Check that it was called with custom parameters
     calls = mock_redis.call_args_list
     assert any(call[1].get("host") == "another-host" for call in calls)
