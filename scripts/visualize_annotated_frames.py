@@ -75,7 +75,7 @@ class AnnotatedFrameVisualizer:
 
         # Create OpenCV window
         cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
-        cv2.resizeWindow(self.window_name, 1280, 720)
+        cv2.resizeWindow(self.window_name, 960, 720)
 
     def update_fps(self):
         """Calculate and update FPS counter."""
