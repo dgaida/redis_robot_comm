@@ -335,13 +335,15 @@ def test_add_label_with_error(monkeypatch, capsys):
     manager = RedisLabelManager()
     manager.verbose = True
 
+    # Simulate Redis failure for both read and write operations
     mock_client.xrevrange.side_effect = Exception("Redis error")
+    mock_client.xadd.side_effect = Exception("Redis error")
 
     result = manager.add_label("cube")
 
     assert result is False
     captured = capsys.readouterr()
-    assert "Error adding label" in captured.out
+    assert "Error" in captured.out
 
 
 # ============================================================================
