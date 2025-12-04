@@ -38,6 +38,10 @@ This package serves as the communication backbone for two major robotics framewo
 
 For detailed workflow documentation, see **[docs/README.md](docs/README.md)**
 
+### Data Flow via Redis Streams in the mentioned repositories
+
+![Data Flow via Redis Streams](https://github.com/dgaida/robot_mcp/blob/master/docs/redis_applications_architecture_diagram.png)
+
 ---
 
 ## Installation
