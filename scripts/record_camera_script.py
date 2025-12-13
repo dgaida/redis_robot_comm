@@ -219,7 +219,7 @@ class CameraAnnotationRecorder:
 
             # Add semi-transparent background
             roi = combined[y_offset : y_offset + overlay_height, x_offset : x_offset + overlay_width]
-            blended = cv2.addWeighted(overlay, 0.7, roi, 0.3, 0)
+            blended = cv2.addWeighted(overlay, 0.9, roi, 0.1, 0)
             combined[y_offset : y_offset + overlay_height, x_offset : x_offset + overlay_width] = blended
 
         return combined
@@ -441,7 +441,7 @@ Controls:
     parser.add_argument(
         "--layout",
         type=str,
-        default="side-by-side",
+        default="overlay",  # "side-by-side",
         choices=["side-by-side", "overlay"],
         help="Frame layout (default: side-by-side)",
     )
