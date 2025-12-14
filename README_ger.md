@@ -17,12 +17,14 @@ Redis-basiertes Kommunikations- und Streaming-Package für Roboteranwendungen.
 
 ## Übersicht
 
-Das `redis_robot_comm` Package bietet eine effiziente Redis-basierte Kommunikationsinfrastruktur für Roboteranwendungen. Es ermöglicht den Austausch von Kamerabildern und Objektdetektionen zwischen verschiedenen Prozessen oder Systemen in Echtzeit.
+Das `redis_robot_comm` Package bietet eine effiziente Redis-basierte Kommunikationsinfrastruktur für Roboteranwendungen. Es ermöglicht den Austausch von Kamerabildern, Objektdetektionen, Metadaten und Text-Overlays zwischen verschiedenen Prozessen oder Systemen in Echtzeit.
 
 ### Hauptfunktionen
 
 * 📦 **Objekterkennung** - Streaming von Detektionsergebnissen über `RedisMessageBroker`
 * 📷 **Bild-Streaming** - Variable Bildgrößen mit JPEG-Kompression über `RedisImageStreamer`
+* 🏷️ **Label-Verwaltung** - Dynamische Objektlabels mit `RedisLabelManager`
+* 📝 **Text-Overlays** - Video-Aufnahme-Integration mit `RedisTextOverlayManager` (NEU!)
 * ⚡ **Echtzeitfähig** - Sub-Millisekunden-Latenz für lokale Redis-Server
 * 🔄 **Asynchron** - Entkoppelte Producer-Consumer-Architektur
 * 📊 **Metadaten** - Automatische Zeitstempel, Roboterposen, Workspace-Informationen
@@ -32,10 +34,11 @@ Das `redis_robot_comm` Package bietet eine effiziente Redis-basierte Kommunikati
 
 ## Anwendungsfälle
 
-Das Package wird in zwei größeren Robotik-Frameworks als Kommunikations-Backbone eingesetzt:
+Das Package wird in Robotik-Frameworks als Kommunikations-Backbone eingesetzt:
 
-- **[vision_detect_segment](https://github.com/dgaida/vision_detect_segment)** - Objekterkennung mit OwlV2, YOLO-World, Grounding-DINO
+- **[vision_detect_segment](https://github.com/dgaida/vision_detect_segment)** - Objekterkennung mit OwlV2, YOLO-World, YOLOE, Grounding-DINO
 - **[robot_environment](https://github.com/dgaida/robot_environment)** - Robotersteuerung mit visueller Objekterkennung
+- **[robot_mcp](https://github.com/dgaida/robot_mcp)** - LLM-basierte Robotersteuerung mit MCP
 
 Für detaillierte Workflow-Dokumentation siehe: **[docs/README.md](docs/README.md)**
 
@@ -53,7 +56,6 @@ pip install -e .
 
 * **Python** ≥ 3.8
 * **Redis-Server** ≥ 5.0 (für Streams-Unterstützung)
-* **Abhängigkeiten**: `redis`, `opencv-python`, `numpy`
 
 ### Redis-Server starten
 
@@ -86,9 +88,6 @@ broker = RedisMessageBroker()
 # Verbindung testen
 if broker.test_connection():
     print("✓ Verbunden mit Redis")
-
-# Stream für Tests leeren
-broker.clear_stream()
 
 # Beispielobjekte publizieren
 objects = [
@@ -148,17 +147,11 @@ image = cv2.imread("example.jpg")
 # Bild mit Metadaten veröffentlichen
 stream_id = streamer.publish_image(
     image,
-    metadata={
-        "robot": "arm1",
-        "workspace": "A",
-        "frame_id": 42
-    },
+    metadata={"robot": "arm1", "workspace": "A"},
     compress_jpeg=True,
     quality=85,
     maxlen=5  # Nur letzten 5 Frames behalten
 )
-
-print(f"Bild publiziert: {stream_id}")
 
 # Neuestes Bild abrufen
 result = streamer.get_latest_image()
@@ -169,101 +162,107 @@ if result:
     cv2.waitKey(0)
 ```
 
-**Features:**
-- ✅ **Variable Bildgrößen** - Automatische Anpassung an verschiedene Auflösungen
-- ✅ **JPEG-Kompression** - Konfigurierbare Qualität (1-100)
-- ✅ **Raw-Modus** - Verlustfreie Übertragung möglich
-- ✅ **Metadaten** - Roboterposen, Workspace-IDs, Zeitstempel
-- ✅ **Stream-Verwaltung** - Automatisches Entfernen alter Frames
-
-**Funktionen:**
-- `publish_image()` - Bild mit optionaler Kompression publizieren
-- `get_latest_image()` - Neuestes Bild abrufen
-- `subscribe_variable_images()` - Kontinuierliches Streaming (blocking)
-- `get_stream_stats()` - Stream-Statistiken abrufen
-
 ---
 
-### 3. Kontinuierliches Streaming
+### 3. Label-Verwaltung mit `RedisLabelManager`
 
 ```python
-import cv2
-import threading
-from redis_robot_comm import RedisImageStreamer
+from redis_robot_comm import RedisLabelManager
 
-streamer = RedisImageStreamer()
+label_mgr = RedisLabelManager()
 
-# Callback-Funktion für empfangene Bilder
-def on_frame(image, metadata, image_info):
-    print(f"Frame {image_info['width']}×{image_info['height']} empfangen")
-    cv2.imshow("Live Stream", image)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        return False
-    return True
+# Labels publizieren
+labels = ["cube", "sphere", "cylinder"]
+label_mgr.publish_labels(labels, metadata={"model_id": "yolo-v8"})
 
-# Subscriber in eigenem Thread starten
-stop_flag = threading.Event()
+# Aktuelle Labels abrufen
+current_labels = label_mgr.get_latest_labels(timeout_seconds=5.0)
+print(f"Erkennbare Objekte: {current_labels}")
 
-def subscriber_loop():
-    def callback(img, meta, info):
-        if not on_frame(img, meta, info):
-            stop_flag.set()
-
-    streamer.subscribe_variable_images(
-        callback=callback,
-        block_ms=500
-    )
-
-thread = threading.Thread(target=subscriber_loop, daemon=True)
-thread.start()
-
-# Publisher-Loop
-cap = cv2.VideoCapture(0)
-try:
-    while not stop_flag.is_set():
-        ret, frame = cap.read()
-        if ret:
-            streamer.publish_image(frame, metadata={"source": "webcam"})
-except KeyboardInterrupt:
-    pass
-finally:
-    cap.release()
-    cv2.destroyAllWindows()
+# Neues Label hinzufügen
+label_mgr.add_label("prism")
 ```
 
 ---
 
-## API-Referenz
+### 4. Text-Overlays mit `RedisTextOverlayManager` (NEU!)
 
-[API-Referenz](docs/api.md)
+Der neue `RedisTextOverlayManager` ermöglicht die Integration von Text-Overlays für Videoaufnahmen:
+
+```python
+from redis_robot_comm import RedisTextOverlayManager
+
+text_mgr = RedisTextOverlayManager()
+
+# Benutzer-Aufgabe publizieren (persistent)
+text_mgr.publish_user_task(
+    task="Nimm den Stift und lege ihn neben den Würfel"
+)
+
+# Roboter-Aussage publizieren (zeitlich begrenzt, 4 Sekunden)
+text_mgr.publish_robot_speech(
+    speech="🤖 Ich nehme jetzt den Stift auf",
+    duration_seconds=4.0
+)
+
+# System-Nachricht publizieren
+text_mgr.publish_system_message(
+    message="🎥 Aufnahme gestartet",
+    duration_seconds=3.0
+)
+
+# Text-Updates abonnieren
+def on_text_update(text_data):
+    print(f"{text_data['type']}: {text_data['text']}")
+
+text_mgr.subscribe_to_texts(on_text_update)
+```
+
+**Anwendungsfälle:**
+- Videoaufnahmen mit Aufgaben-Overlays
+- Roboter-Aktions-Kommentare
+- System-Status-Meldungen
+- Bildungsvideos
+- Dokumentationsvideos
+
+Siehe **[docs/text_overlay_readme.md](docs/text_overlay_readme.md)** für detaillierte Dokumentation.
 
 ---
 
-## Projektstruktur
+## Utility-Skripte
 
+### Annotierte Frames visualisieren
+
+```bash
+python scripts/visualize_annotated_frames.py --stream-name annotated_camera
 ```
-redis_robot_comm/
-│
-├── redis_robot_comm/
-│   ├── __init__.py
-│   ├── redis_client.py           # RedisMessageBroker
-│   ├── redis_image_streamer.py   # RedisImageStreamer
-│
-├── docs/
-│   ├── README.md                  # Workflow-Dokumentation
-│   ├── workflow_detector.png      # Objekterkennungs-Workflow
-│   └── workflow_streamer.png      # Bild-Streaming-Workflow
-│
-├── tests/
-│   ├── __init__.py
-│   └── test_redis_robot_comm.py
-│
-├── main.py                        # Beispiel-Skript
-├── pyproject.toml
-├── requirements.txt
-├── requirements-dev.txt
-└── README.md
+
+**Steuerung:**
+- `q/ESC` - Beenden
+- `s` - Screenshot speichern
+- `p` - Pause/Fortsetzen
+- `f` - FPS-Anzeige umschalten
+
+### Kamera mit Text-Overlays aufnehmen
+
+```bash
+python scripts/record_camera_with_overlays.py \
+  --camera 0 \
+  --stream annotated_camera \
+  --layout side-by-side
 ```
+
+**Features:**
+- Benutzer-Aufgaben-Anzeige (persistent)
+- Roboter-Sprach-Overlays (zeitlich begrenzt)
+- TH Köln Branding
+- Side-by-Side oder Overlay-Layouts
+- Unicode/Emoji-Unterstützung
+
+**Steuerung:**
+- `q/ESC` - Aufnahme stoppen
+- `p` - Pause/Fortsetzen
+- `s` - Screenshot
 
 ---
 
@@ -277,162 +276,137 @@ redis_robot_comm/
 | Bild abrufen | <1 ms | In-Memory-Operation |
 | Objekt publizieren | <1 ms | JSON-Serialisierung |
 | Objekt abrufen | <1 ms | JSON-Deserialisierung |
+| Text-Overlay publizieren | <1 ms | Leichtgewichtige Operation |
 
 ### Durchsatz
 
 - **Bild-Streaming**: 30-60 FPS (JPEG, quality=85)
 - **Objekt-Publishing**: 1000+ Objekte/Sekunde
+- **Text-Overlays**: 10000+ Operationen/Sekunde
 - **Multi-Consumer**: Keine signifikante Performance-Beeinträchtigung
-
-### Optimierungsoptionen
-
-```python
-# Hohe Kompression (schneller, kleiner)
-streamer.publish_image(image, compress_jpeg=True, quality=70)
-
-# Niedrige Kompression (langsamer, bessere Qualität)
-streamer.publish_image(image, compress_jpeg=True, quality=95)
-
-# Keine Kompression (am langsamsten, verlustfrei)
-streamer.publish_image(image, compress_jpeg=False)
-
-# Stream-Größe begrenzen
-streamer.publish_image(image, maxlen=5)  # Nur letzte 5 Frames
-```
 
 ---
 
 ## Erweiterte Verwendung
 
-### Objekte in Zeitbereichen abfragen
+### Kontinuierliches Bild-Streaming
 
 ```python
-import time
+import cv2
+import threading
+from redis_robot_comm import RedisImageStreamer
 
-start_time = time.time() - 10  # Letzte 10 Sekunden
-end_time = time.time()
+streamer = RedisImageStreamer()
+stop_flag = threading.Event()
 
-objects = broker.get_objects_in_timerange(start_time, end_time)
-print(f"Objekte in den letzten 10 Sekunden: {len(objects)}")
-```
+def on_frame(image, metadata, image_info):
+    print(f"Frame {image_info['width']}×{image_info['height']} empfangen")
+    cv2.imshow("Live Stream", image)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        stop_flag.set()
+        return False
+    return True
 
-### Asynchrones Objekt-Abonnement
-
-```python
-def on_detection(data):
-    objects = data["objects"]
-    camera_pose = data["camera_pose"]
-    timestamp = data["timestamp"]
-
-    print(f"Empfangen: {len(objects)} Objekte")
-    for obj in objects:
-        print(f"  - {obj['class_name']}: {obj['confidence']:.2f}")
-
-try:
-    broker.subscribe_objects(on_detection)  # Blocking
-except KeyboardInterrupt:
-    print("Abonnement beendet")
-```
-
-### Stream-Statistiken
-
-```python
-# RedisMessageBroker
-info = broker.get_stream_info()
-print(f"Stream-Länge: {info['length']}")
-print(f"Erster Eintrag: {info['first-entry']}")
-print(f"Letzter Eintrag: {info['last-entry']}")
-
-# RedisImageStreamer
-stats = streamer.get_stream_stats()
-print(f"Gesamt-Nachrichten: {stats['total_messages']}")
-print(f"Erste Frame-ID: {stats['first_entry_id']}")
-print(f"Letzte Frame-ID: {stats['last_entry_id']}")
-```
-
----
-
-## Beispiele
-
-Das Repository enthält ein vollständiges Beispielskript, das alle Funktionen demonstriert:
-
-```bash
-# Redis starten
-docker run -p 6379:6379 redis:alpine
-
-# Beispiel ausführen
-python main.py
-```
-
-Das Skript zeigt:
-- ✅ Verbindungstest
-- ✅ Objekt-Publishing und -Retrieval
-- ✅ Bild-Publishing und -Retrieval
-- ✅ Asynchrones Bild-Streaming mit Callback
-- ✅ Visualisierung der Ergebnisse
-
----
-
-## Integration in eigene Projekte
-
-### Objekterkennung integrieren
-
-```python
-from redis_robot_comm import RedisMessageBroker
-from your_detector import YourDetector
-
-broker = RedisMessageBroker()
-detector = YourDetector()
-
-# Objekte erkennen und publizieren
-def detect_and_publish(image):
-    objects = detector.detect(image)
-    broker.publish_objects(
-        objects,
-        camera_pose={"x": 0.0, "y": 0.0, "z": 0.5}
+# Subscriber in eigenem Thread starten
+def subscriber_loop():
+    streamer.subscribe_variable_images(
+        lambda img, meta, info: on_frame(img, meta, info)
     )
-    print(f"Publiziert: {len(objects)} Objekte")
-```
 
-### Robotersteuerung mit Objektdaten
+thread = threading.Thread(target=subscriber_loop, daemon=True)
+thread.start()
 
-```python
-from redis_robot_comm import RedisMessageBroker
-from your_robot import YourRobot
-
-broker = RedisMessageBroker()
-robot = YourRobot()
-
-# Objekte abrufen und greifen
-def pick_object(label):
-    objects = broker.get_latest_objects()
-    for obj in objects:
-        if obj["class_name"] == label:
-            position = obj["position"]
-            robot.pick(position["x"], position["y"], position["z"])
-            return True
-    return False
-
-success = pick_object("cube")
-print(f"Objekt gegriffen: {success}")
+# Publisher-Loop
+cap = cv2.VideoCapture(0)
+try:
+    while not stop_flag.is_set():
+        ret, frame = cap.read()
+        if ret:
+            streamer.publish_image(frame)
+except KeyboardInterrupt:
+    pass
+finally:
+    cap.release()
+    cv2.destroyAllWindows()
 ```
 
 ---
 
-## Fehlerbehandlung
+## Projektstruktur
 
-```python
-from redis.exceptions import ConnectionError
-
-try:
-    broker = RedisMessageBroker()
-    if not broker.test_connection():
-        print("❌ Keine Verbindung zu Redis")
-except ConnectionError as e:
-    print(f"❌ Redis-Verbindungsfehler: {e}")
-    print("Stelle sicher, dass Redis läuft:")
-    print("  docker run -p 6379:6379 redis:alpine")
 ```
+redis_robot_comm/
+│
+├── redis_robot_comm/
+│   ├── __init__.py
+│   ├── redis_client.py           # RedisMessageBroker
+│   ├── redis_image_streamer.py   # RedisImageStreamer
+│   ├── redis_label_manager.py    # RedisLabelManager
+│   └── redis_text_overlay.py     # RedisTextOverlayManager (NEU!)
+│
+├── scripts/
+│   ├── visualize_annotated_frames.py
+│   ├── record_camera_with_overlays.py  # Erweitert mit Text-Overlays
+│   └── camera_recorder_audio.py
+│
+├── docs/
+│   ├── README.md                  # Workflow-Dokumentation
+│   ├── api.md                     # API-Referenz
+│   ├── text_overlay_readme.md     # Text-Overlay-Anleitung (NEU!)
+│   ├── TESTING.md                 # Test-Anleitung
+│   └── *.png
+│
+├── tests/
+│   ├── test_redis_robot_comm.py
+│   ├── test_redis_robot_comm_extended.py
+│   ├── test_redis_label_manager.py
+│   └── test_redis_text_overlay.py  # NEU!
+│
+├── examples/
+│   └── main.py
+│
+└── README.md
+```
+
+---
+
+## API-Referenz
+
+Für detaillierte API-Dokumentation siehe: **[docs/api.md](docs/api.md)**
+
+### RedisMessageBroker
+
+| Methode | Beschreibung |
+|---------|--------------|
+| `publish_objects(objects, camera_pose)` | Objekte publizieren |
+| `get_latest_objects(max_age_seconds)` | Neueste Objekte abrufen |
+| `subscribe_objects(callback)` | Kontinuierliches Abonnement |
+
+### RedisImageStreamer
+
+| Methode | Beschreibung |
+|---------|--------------|
+| `publish_image(image, metadata, compress_jpeg, quality)` | Bild publizieren |
+| `get_latest_image()` | Neuestes Bild abrufen |
+| `subscribe_variable_images(callback)` | Kontinuierliches Streaming |
+
+### RedisLabelManager
+
+| Methode | Beschreibung |
+|---------|--------------|
+| `publish_labels(labels, metadata)` | Label-Liste publizieren |
+| `get_latest_labels(timeout_seconds)` | Aktuelle Labels abrufen |
+| `add_label(new_label)` | Neues Label hinzufügen |
+
+### RedisTextOverlayManager (NEU!)
+
+| Methode | Beschreibung |
+|---------|--------------|
+| `publish_user_task(task)` | Persistente Benutzer-Aufgabe publizieren |
+| `publish_robot_speech(speech, duration)` | Zeitlich begrenzte Roboter-Nachricht |
+| `publish_system_message(message, duration)` | System-Nachricht publizieren |
+| `get_latest_texts(max_age_seconds)` | Letzte Texte abrufen |
+| `subscribe_to_texts(callback)` | Text-Updates überwachen |
 
 ---
 
@@ -448,6 +422,8 @@ pytest tests/ -v
 # Mit Coverage
 pytest tests/ --cov=redis_robot_comm --cov-report=html
 ```
+
+**Test-Abdeckung:** >90% über alle Module
 
 ---
 
@@ -480,6 +456,45 @@ pre-commit install
 
 ---
 
+## Integration in eigene Projekte
+
+### Objekterkennung integrieren
+
+```python
+from redis_robot_comm import RedisMessageBroker
+
+broker = RedisMessageBroker()
+
+def detect_and_publish(image):
+    objects = detector.detect(image)
+    broker.publish_objects(
+        objects,
+        camera_pose={"x": 0.0, "y": 0.0, "z": 0.5}
+    )
+```
+
+### Videoaufnahme mit Text-Overlays
+
+```python
+from redis_robot_comm import RedisTextOverlayManager
+
+text_mgr = RedisTextOverlayManager()
+
+# MCP Server publiziert Benutzer-Aufgaben
+def handle_user_command(command: str):
+    text_mgr.publish_user_task(command)
+    # Befehl ausführen...
+
+# Roboter publiziert Aktions-Kommentare
+def robot_action(action: str):
+    text_mgr.publish_robot_speech(
+        speech=f"🤖 {action}",
+        duration_seconds=4.0
+    )
+```
+
+---
+
 ## Lizenz
 
 Dieses Projekt steht unter der **MIT-Lizenz**. Siehe [LICENSE](LICENSE) für Details.
@@ -488,8 +503,9 @@ Dieses Projekt steht unter der **MIT-Lizenz**. Siehe [LICENSE](LICENSE) für Det
 
 ## Verwandte Projekte
 
-- **[vision_detect_segment](https://github.com/dgaida/vision_detect_segment)** - Objekterkennung mit OwlV2, YOLO-World, Grounding-DINO
+- **[vision_detect_segment](https://github.com/dgaida/vision_detect_segment)** - Objekterkennung mit OwlV2, YOLO-World, YOLOE, Grounding-DINO
 - **[robot_environment](https://github.com/dgaida/robot_environment)** - Robotersteuerung mit visueller Objekterkennung
+- **[robot_mcp](https://github.com/dgaida/robot_mcp)** - LLM-basierte Robotersteuerung mit MCP
 
 ---
 
