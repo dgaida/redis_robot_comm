@@ -23,25 +23,34 @@ class RedisMessageBroker:
         self.verbose = False
         self.client = redis.Redis(host=host, port=port, db=db, decode_responses=True)
 
-    def publish_objects(self, objects: List[Dict], camera_pose: dict = None):
+    def publish_objects(
+        self, objects: List[Dict], camera_pose: dict = None, maxlen: int = 500  # Limit stream size (default: keep last 500)
+    ):
         """Publiziert eine Liste erkannter Objekte in den Redis-Stream.
 
         Args:
             objects (List[Dict]): Liste erkannter Objekte.
             camera_pose (dict, optional): Pose der Kamera.
+            maxlen (int): Maximum number of entries to keep in stream (default: 100).
 
         Returns:
             str | None: ID der Nachricht im Stream oder None bei Fehler.
         """
         message = {
-            "timestamp": str(time.time()),  # Convert to string
-            "objects": json.dumps(objects),  # Serialize list to JSON string
+            "timestamp": str(time.time()),
+            "objects": json.dumps(objects),
             "camera_pose": json.dumps(camera_pose) if camera_pose else json.dumps({}),
         }
 
         try:
-            # All values must be strings for Redis Streams
-            result = self.client.xadd("detected_objects", message)
+            # ✅ FIXED: Use maxlen to prevent unbounded growth
+            result = self.client.xadd(
+                "detected_objects",
+                message,
+                maxlen=maxlen,  # Keeps only the last N messages
+                approximate=True,  # Allows Redis to optimize trimming
+            )
+
             if self.verbose:
                 print(f"Published {len(objects)} objects to Redis stream: {result}")
             return result
