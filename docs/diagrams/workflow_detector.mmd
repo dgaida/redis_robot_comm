@@ -1,0 +1,12 @@
+graph LR
+    A[Object Detector]
+    B[(Redis Server<br/>RedisMessageBroker)]
+    C[Consumer]
+
+    A -->|1. Publish Objects<br/>publish_objects| B
+    B -->|2. Get Objects<br/>get_latest_objects| C
+    A -.->|Objects:<br/>label, bbox, ...| B
+
+    style A fill:#9db4d4,stroke:#333,stroke-width:2px
+    style B fill:#ffc266,stroke:#333,stroke-width:2px
+    style C fill:#9db4d4,stroke:#333,stroke-width:2px
