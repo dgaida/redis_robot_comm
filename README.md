@@ -456,33 +456,9 @@ def robot_action(action: str):
 
 ## API Reference
 
-For detailed API documentation, see **[docs/api.md](docs/api.md)**
+For detailed API documentation, see **[docs/api.md](docs/api.md)**.
 
-### RedisMessageBroker
-
-| Method | Description |
-|--------|-------------|
-| `publish_objects(objects, camera_pose)` | Publish object list |
-| `get_latest_objects(max_age_seconds)` | Retrieve latest objects |
-| `subscribe_objects(callback)` | Continuous subscription |
-
-### RedisImageStreamer
-
-| Method | Description |
-|--------|-------------|
-| `publish_image(image, metadata, compress_jpeg, quality)` | Publish image |
-| `get_latest_image()` | Retrieve latest image |
-| `subscribe_variable_images(callback)` | Continuous streaming |
-
-### RedisLabelManager
-
-| Method | Description |
-|--------|-------------|
-| `publish_labels(labels, metadata)` | Publish label list |
-| `get_latest_labels(timeout_seconds)` | Retrieve current labels |
-| `add_label(new_label)` | Add new label |
-
-### RedisTextOverlayManager (NEW!)
+### RedisTextOverlayManager (NEW!) - has to be moved inside api.md
 
 | Method | Description |
 |--------|-------------|
@@ -496,18 +472,7 @@ For detailed API documentation, see **[docs/api.md](docs/api.md)**
 
 ## Testing
 
-```bash
-# Install development dependencies
-pip install -r requirements-dev.txt
-
-# Run tests
-pytest tests/ -v
-
-# Run with coverage
-pytest tests/ --cov=redis_robot_comm --cov-report=html
-```
-
-**Test Coverage:** >90% across all modules
+See **[docs/TESTING.md](docs/TESTING.md)**.
 
 ---
 
