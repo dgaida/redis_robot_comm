@@ -2,6 +2,7 @@ import threading
 import time
 from redis_robot_comm import RedisMessageBroker
 
+
 def consumer(consumer_id):
     broker = RedisMessageBroker()
     print(f"Consumer {consumer_id} starting...")
@@ -11,6 +12,7 @@ def consumer(consumer_id):
 
     broker.subscribe_objects(on_objects)
 
+
 def producer():
     broker = RedisMessageBroker()
     print("Producer starting...")
@@ -18,6 +20,7 @@ def producer():
         objects = [{"id": f"obj_{i}", "class_name": "cube"}]
         broker.publish_objects(objects)
         time.sleep(1)
+
 
 def main():
     # Start two consumers
@@ -32,6 +35,7 @@ def main():
     producer()
 
     print("Example finished.")
+
 
 if __name__ == "__main__":
     main()

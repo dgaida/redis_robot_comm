@@ -9,7 +9,7 @@ from .exceptions import RedisConnectionError
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def retry_on_connection_error(
@@ -28,6 +28,7 @@ def retry_on_connection_error(
     Returns:
         Decorated function.
     """
+
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> T:
@@ -38,9 +39,7 @@ def retry_on_connection_error(
                     return func(*args, **kwargs)
                 except (RedisConnectionError, ConnectionError) as e:
                     if attempt == max_attempts:
-                        logger.error(
-                            f"Failed after {max_attempts} attempts: {func.__name__}"
-                        )
+                        logger.error(f"Failed after {max_attempts} attempts: {func.__name__}")
                         raise
 
                     logger.warning(
@@ -54,4 +53,5 @@ def retry_on_connection_error(
             raise RuntimeError("Retry logic error")
 
         return wrapper
+
     return decorator

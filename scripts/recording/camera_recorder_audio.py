@@ -229,19 +229,32 @@ class CameraRecorderWithAudio(BaseVideoRecorder):
         # Save audio to WAV
         if self.audio_frames:
             import scipy.io.wavfile as wavfile
+
             audio_data = np.concatenate(self.audio_frames, axis=0)
             wavfile.write(self.audio_file, self.audio_samplerate, audio_data)
 
             # Merge video and audio using ffmpeg
             import subprocess
+
             try:
                 subprocess.run(
                     [
-                        "ffmpeg", "-y", "-i", self.video_file, "-i", self.audio_file,
-                        "-c:v", "copy", "-c:a", "aac", "-strict", "experimental",
+                        "ffmpeg",
+                        "-y",
+                        "-i",
+                        self.video_file,
+                        "-i",
+                        self.audio_file,
+                        "-c:v",
+                        "copy",
+                        "-c:a",
+                        "aac",
+                        "-strict",
+                        "experimental",
                         self.final_output,
                     ],
-                    check=True, capture_output=True,
+                    check=True,
+                    capture_output=True,
                 )
                 Path(self.video_file).unlink()
                 Path(self.audio_file).unlink()
@@ -278,6 +291,7 @@ def main():
         audio_device=args.audio_device,
     )
     recorder.run()
+
 
 if __name__ == "__main__":
     main()

@@ -6,7 +6,6 @@ import json
 import logging
 from unittest.mock import MagicMock, patch
 
-
 # ============================================================================
 # RedisMessageBroker Extended Tests
 # ============================================================================
@@ -83,7 +82,10 @@ def test_get_objects_in_timerange_verbose(message_broker, mock_redis_client, cap
     """Test verbose output for timerange query."""
     message_broker.verbose = True
 
-    mock_redis_client.xrange.return_value = [("1-0", {"objects": '[{"id": "obj_1"}]'}), ("2-0", {"objects": '[{"id": "obj_2"}]'})]
+    mock_redis_client.xrange.return_value = [
+        ("1-0", {"objects": '[{"id": "obj_1"}]'}),
+        ("2-0", {"objects": '[{"id": "obj_2"}]'}),
+    ]
 
     with caplog.at_level(logging.INFO):
         message_broker.get_objects_in_timerange(1000.0, 2000.0)
@@ -203,6 +205,7 @@ def test_publish_image_invalid_input(image_streamer):
     """Test that publish_image raises ValueError for invalid input."""
     from redis_robot_comm.exceptions import InvalidImageError
     import pytest
+
     with pytest.raises(InvalidImageError, match="must be a NumPy array"):
         image_streamer.publish_image(None)
 
@@ -427,6 +430,7 @@ def test_get_stream_stats_success(image_streamer, mock_redis_client):
 def test_custom_stream_name(mock_redis_client):
     """Test creating streamer with custom stream name."""
     from redis_robot_comm.redis_image_streamer import RedisImageStreamer
+
     custom_name = "my_custom_camera"
     streamer = RedisImageStreamer(stream_name=custom_name)
 
@@ -438,6 +442,7 @@ def test_custom_redis_connection(monkeypatch):
     from redis_robot_comm.redis_client import RedisMessageBroker
     from redis_robot_comm.redis_image_streamer import RedisImageStreamer
     import redis
+
     mock_redis = MagicMock()
     monkeypatch.setattr(redis, "Redis", mock_redis)
     mock_redis.return_value.ping.return_value = True
@@ -445,10 +450,10 @@ def test_custom_redis_connection(monkeypatch):
     RedisMessageBroker(host="custom-host", port=6380, db=2)
     # Verify relevant parameters were passed
     args, kwargs = mock_redis.call_args
-    assert kwargs.get('host') == "custom-host"
-    assert kwargs.get('port') == 6380
-    assert kwargs.get('db') == 2
-    assert kwargs.get('decode_responses') is True
+    assert kwargs.get("host") == "custom-host"
+    assert kwargs.get("port") == 6380
+    assert kwargs.get("db") == 2
+    assert kwargs.get("decode_responses") is True
 
     RedisImageStreamer(host="another-host", port=6381)
     # Check that it was called with custom parameters
@@ -473,7 +478,10 @@ def test_end_to_end_object_flow(message_broker, mock_redis_client, sample_object
     # Retrieve
     current_time = 1000.0
     mock_redis_client.xrevrange.return_value = [
-        ("1-0", {"timestamp": str(current_time), "objects": json.dumps(sample_objects), "camera_pose": json.dumps(camera_pose)})
+        (
+            "1-0",
+            {"timestamp": str(current_time), "objects": json.dumps(sample_objects), "camera_pose": json.dumps(camera_pose)},
+        )
     ]
 
     with patch("time.time", return_value=current_time + 0.5):

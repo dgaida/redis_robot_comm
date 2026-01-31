@@ -1,5 +1,6 @@
 from redis_robot_comm import RedisLabelManager
 
+
 def main():
     label_mgr = RedisLabelManager()
 
@@ -18,6 +19,7 @@ def main():
 
     updated_labels = label_mgr.get_latest_labels()
     print(f"Updated detectable objects: {updated_labels}")
+
 
 if __name__ == "__main__":
     main()

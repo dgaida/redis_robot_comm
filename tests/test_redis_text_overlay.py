@@ -5,7 +5,6 @@ import logging
 from unittest.mock import MagicMock, patch
 from redis_robot_comm.redis_text_overlay import TextType
 
-
 # ============================================================================
 # Test: Initialization
 # ============================================================================
@@ -21,6 +20,7 @@ def test_init_custom_parameters(monkeypatch):
     """Test initialization with custom parameters."""
     from redis_robot_comm.redis_text_overlay import RedisTextOverlayManager
     import redis
+
     mock_redis = MagicMock()
     monkeypatch.setattr(redis, "Redis", mock_redis)
     mock_redis.return_value.ping.return_value = True
@@ -30,9 +30,9 @@ def test_init_custom_parameters(monkeypatch):
     assert manager.stream_name == "custom_overlays"
     # Verify relevant parameters were passed
     args, kwargs = mock_redis.call_args
-    assert kwargs.get('host') == "custom-host"
-    assert kwargs.get('port') == 6380
-    assert kwargs.get('decode_responses') is True
+    assert kwargs.get("host") == "custom-host"
+    assert kwargs.get("port") == 6380
+    assert kwargs.get("decode_responses") is True
     mock_redis.return_value.ping.assert_called_once()
 
 

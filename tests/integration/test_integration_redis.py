@@ -25,6 +25,7 @@ def redis_url(request):
 def clean_redis(redis_url):
     """Ensure clean Redis state before each test."""
     import redis
+
     client = redis.from_url(redis_url, decode_responses=True)
 
     # Clean up test streams
@@ -78,7 +79,8 @@ class TestRedisIntegration:
         host = redis_url.split("//")[1].split(":")[0]
         port = int(redis_url.split(":")[2].split("/")[0])
         streamer = RedisImageStreamer(
-            host=host, port=port,
+            host=host,
+            port=port,
             stream_name="test_camera",
         )
 

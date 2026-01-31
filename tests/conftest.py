@@ -28,6 +28,7 @@ def mock_redis_client(monkeypatch):
 def message_broker(mock_redis_client):
     """Provide a RedisMessageBroker with mocked Redis."""
     from redis_robot_comm.redis_client import RedisMessageBroker
+
     broker = RedisMessageBroker()
     return broker
 
@@ -36,6 +37,7 @@ def message_broker(mock_redis_client):
 def image_streamer(mock_redis_client):
     """Provide a RedisImageStreamer with mocked Redis."""
     from redis_robot_comm.redis_image_streamer import RedisImageStreamer
+
     return RedisImageStreamer()
 
 
@@ -43,6 +45,7 @@ def image_streamer(mock_redis_client):
 def label_manager(mock_redis_client):
     """Provide a RedisLabelManager with mocked Redis."""
     from redis_robot_comm.redis_label_manager import RedisLabelManager
+
     return RedisLabelManager()
 
 
@@ -50,6 +53,7 @@ def label_manager(mock_redis_client):
 def text_overlay_manager(mock_redis_client):
     """Provide a RedisTextOverlayManager with mocked Redis."""
     from redis_robot_comm.redis_text_overlay import RedisTextOverlayManager
+
     return RedisTextOverlayManager()
 
 

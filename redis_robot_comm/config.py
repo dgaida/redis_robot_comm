@@ -30,6 +30,7 @@ class RedisConfig:
             RedisConfig instance.
         """
         import redis
+
         connection_pool = redis.ConnectionPool.from_url(url)
         conn_kwargs = connection_pool.connection_kwargs
 

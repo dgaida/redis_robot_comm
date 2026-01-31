@@ -81,9 +81,7 @@ class BaseVideoRecorder(ABC):
     def _init_redis(self, host: str, port: int, stream_name: str) -> None:
         """Initialize Redis connection."""
         try:
-            self.image_streamer = RedisImageStreamer(
-                host=host, port=port, stream_name=stream_name
-            )
+            self.image_streamer = RedisImageStreamer(host=host, port=port, stream_name=stream_name)
             logger.info(f"✓ Connected to Redis: {stream_name}")
         except Exception as e:
             self.camera.release()
@@ -110,16 +108,14 @@ class BaseVideoRecorder(ABC):
         return placeholder
 
     @abstractmethod
-    def process_frame(
-        self, camera_frame: np.ndarray, annotated_frame: Optional[np.ndarray]
-    ) -> np.ndarray:
+    def process_frame(self, camera_frame: np.ndarray, annotated_frame: Optional[np.ndarray]) -> np.ndarray:
         """Process and combine frames. Must be implemented by subclasses."""
         pass
 
     def cleanup(self) -> None:
         """Clean up resources."""
         logger.info("Cleaning up resources...")
-        if hasattr(self, 'camera'):
+        if hasattr(self, "camera"):
             self.camera.release()
         cv2.destroyAllWindows()
 

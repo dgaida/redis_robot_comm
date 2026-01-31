@@ -451,6 +451,7 @@ class EnhancedCameraRecorder(BaseVideoRecorder):
 
     def _subscribe_text_updates(self) -> None:
         """Background thread for text updates."""
+
         def on_text_update(text_data):
             text_type = text_data["type"]
             text = text_data["text"]
@@ -566,6 +567,7 @@ def main():
         layout=args.layout,
     )
     recorder.run()
+
 
 if __name__ == "__main__":
     main()

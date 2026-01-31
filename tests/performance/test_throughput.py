@@ -12,10 +12,7 @@ class TestPerformance:
         """Benchmark object publishing throughput."""
         mock_redis_client.xadd.return_value = "1-0"
 
-        objects = [
-            {"id": f"obj_{i}", "class_name": "cube", "confidence": 0.95}
-            for i in range(100)
-        ]
+        objects = [{"id": f"obj_{i}", "class_name": "cube", "confidence": 0.95} for i in range(100)]
 
         def publish_batch():
             for _ in range(10):

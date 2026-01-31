@@ -4,7 +4,6 @@ import json
 import logging
 from unittest.mock import MagicMock, patch
 
-
 # ============================================================================
 # Test: Initialization
 # ============================================================================
@@ -20,6 +19,7 @@ def test_init_custom_parameters(monkeypatch):
     """Test initialization with custom parameters."""
     from redis_robot_comm.redis_label_manager import RedisLabelManager
     import redis
+
     mock_redis = MagicMock()
     monkeypatch.setattr(redis, "Redis", mock_redis)
     mock_redis.return_value.ping.return_value = True
@@ -29,9 +29,9 @@ def test_init_custom_parameters(monkeypatch):
     assert manager.stream_name == "custom_labels"
     # Verify relevant parameters were passed
     args, kwargs = mock_redis.call_args
-    assert kwargs.get('host') == "custom-host"
-    assert kwargs.get('port') == 6380
-    assert kwargs.get('decode_responses') is True
+    assert kwargs.get("host") == "custom-host"
+    assert kwargs.get("port") == 6380
+    assert kwargs.get("decode_responses") is True
     mock_redis.return_value.ping.assert_called_once()
 
 
@@ -217,7 +217,9 @@ def test_add_label_to_existing_list(label_manager, mock_redis_client):
     # Existing labels
     current_time = 1000.0
     existing_labels = ["sphere", "cylinder"]
-    mock_redis_client.xrevrange.return_value = [("1-0", {"timestamp": str(current_time), "labels": json.dumps(existing_labels)})]
+    mock_redis_client.xrevrange.return_value = [
+        ("1-0", {"timestamp": str(current_time), "labels": json.dumps(existing_labels)})
+    ]
     mock_redis_client.xadd.return_value = "2-0"
 
     with patch("time.time", return_value=current_time + 1.0):
@@ -238,7 +240,9 @@ def test_add_label_already_exists(label_manager, mock_redis_client, caplog):
 
     current_time = 1000.0
     existing_labels = ["cube", "sphere"]
-    mock_redis_client.xrevrange.return_value = [("1-0", {"timestamp": str(current_time), "labels": json.dumps(existing_labels)})]
+    mock_redis_client.xrevrange.return_value = [
+        ("1-0", {"timestamp": str(current_time), "labels": json.dumps(existing_labels)})
+    ]
 
     with patch("time.time", return_value=current_time + 1.0):
         with caplog.at_level(logging.INFO):
@@ -252,7 +256,9 @@ def test_add_label_case_insensitive(label_manager, mock_redis_client):
     """Test that add_label is case-insensitive."""
     current_time = 1000.0
     existing_labels = ["Cube", "Sphere"]
-    mock_redis_client.xrevrange.return_value = [("1-0", {"timestamp": str(current_time), "labels": json.dumps(existing_labels)})]
+    mock_redis_client.xrevrange.return_value = [
+        ("1-0", {"timestamp": str(current_time), "labels": json.dumps(existing_labels)})
+    ]
 
     with patch("time.time", return_value=current_time + 1.0):
         result = label_manager.add_label("CUBE")
@@ -319,7 +325,10 @@ def test_subscribe_to_label_updates_without_metadata(label_manager, mock_redis_c
     """Test subscribe when metadata field is missing."""
     labels = ["cube"]
 
-    mock_redis_client.xread.side_effect = [[("detectable_labels", [("1-0", {"labels": json.dumps(labels)})])], KeyboardInterrupt()]
+    mock_redis_client.xread.side_effect = [
+        [("detectable_labels", [("1-0", {"labels": json.dumps(labels)})])],
+        KeyboardInterrupt(),
+    ]
 
     callback_data = []
 

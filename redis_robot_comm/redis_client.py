@@ -174,9 +174,7 @@ class RedisMessageBroker:
             logger.error(f"Unexpected error getting latest objects: {e}")
             return []
 
-    def get_objects_in_timerange(
-        self, start_timestamp: float, end_timestamp: Optional[float] = None
-    ) -> List[ObjectDict]:
+    def get_objects_in_timerange(self, start_timestamp: float, end_timestamp: Optional[float] = None) -> List[ObjectDict]:
         """
         Retrieve objects published within a specific time range.
 

@@ -1,5 +1,6 @@
 from redis_robot_comm import RedisMessageBroker
 
+
 def main():
     broker = RedisMessageBroker()
 
@@ -17,10 +18,7 @@ def main():
         }
     ]
 
-    camera_pose = {
-        "x": 0.0, "y": 0.0, "z": 0.5,
-        "roll": 0.0, "pitch": 1.57, "yaw": 0.0
-    }
+    camera_pose = {"x": 0.0, "y": 0.0, "z": 0.5, "roll": 0.0, "pitch": 1.57, "yaw": 0.0}
 
     print("Publishing objects...")
     broker.publish_objects(objects, camera_pose)
@@ -30,6 +28,7 @@ def main():
     print(f"Found {len(latest)} objects")
     for obj in latest:
         print(f"  - {obj['class_name']}: {obj['confidence']:.2f}")
+
 
 if __name__ == "__main__":
     main()
