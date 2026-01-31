@@ -4,6 +4,7 @@ repos:
     hooks:
       - id: ruff
         args: [--fix]
+      - id: ruff-format
 
   - repo: https://github.com/psf/black
     rev: 24.10.0
@@ -23,6 +24,9 @@ repos:
         args: ['--maxkb=1000']
       - id: check-merge-conflict
       - id: debug-statements
+      - id: check-toml
+      - id: check-json
+      - id: mixed-line-ending
 
   - repo: https://github.com/pycqa/bandit
     rev: 1.7.10
@@ -30,4 +34,24 @@ repos:
       - id: bandit
         args: ['-c', 'pyproject.toml']
         additional_dependencies: ['bandit[toml]']
-        exclude: ^tests/  # Don't scan test files
+        exclude: ^tests/
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.0
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-redis, numpy]
+        args: [--ignore-missing-imports, --no-strict-optional]
+
+  - repo: https://github.com/econchick/interrogate
+    rev: 1.7.0
+    hooks:
+      - id: interrogate
+        args: [--fail-under=80, -vv]
+        exclude: ^tests/
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]

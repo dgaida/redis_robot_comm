@@ -3,10 +3,7 @@
 record_camera_with_overlays.py
 
 Enhanced recording script with proper Unicode/emoji support.
-Fixes:
-- Emoji rendering (🤖, 👁️, 🔍, etc.)
-- German umlauts (ü, ä, ö, ß)
-- Logo scaling to 250px width with aspect ratio
+Now uses BaseVideoRecorder.
 """
 
 import cv2
@@ -17,7 +14,10 @@ import threading
 from datetime import datetime
 from pathlib import Path
 from collections import deque
-from redis_robot_comm import RedisImageStreamer, RedisTextOverlayManager
+from typing import Optional, List
+
+from redis_robot_comm import RedisTextOverlayManager
+from scripts.recording.video_recorder_base import BaseVideoRecorder
 
 # Try to import PIL for better text rendering
 try:
@@ -70,7 +70,7 @@ class VideoOverlayRenderer:
         self.speech_queue = deque(maxlen=5)
         self.current_user_task = None
 
-    def _init_pil_fonts(self):
+    def _init_pil_fonts(self) -> None:
         """Initialize PIL fonts with Unicode/emoji support."""
         try:
             # Try to find a font with emoji support
@@ -111,7 +111,7 @@ class VideoOverlayRenderer:
     def _load_logo(self) -> np.ndarray:
         """Load and scale logo to 250px width keeping aspect ratio."""
         try:
-            logo = cv2.imread("scripts/thkoelnlogo.png")
+            logo = cv2.imread("scripts/utils/thkoelnlogo.png")
             if logo is None:
                 return self._create_fallback_logo()
 
@@ -150,15 +150,15 @@ class VideoOverlayRenderer:
 
         return logo
 
-    def update_user_task(self, task: str):
+    def update_user_task(self, task: str) -> None:
         """Update current user task."""
         self.current_user_task = task
 
-    def add_robot_speech(self, speech: str, duration: float = 4.0):
+    def add_robot_speech(self, speech: str, duration: float = 4.0) -> None:
         """Add robot speech to queue."""
         self.speech_queue.append({"text": speech, "timestamp": time.time(), "duration": duration})
 
-    def _get_active_speeches(self) -> list:
+    def _get_active_speeches(self) -> List[str]:
         """Get currently active speeches."""
         current_time = time.time()
         active = []
@@ -171,32 +171,15 @@ class VideoOverlayRenderer:
         return active
 
     def _put_text_pil(self, frame: np.ndarray, text: str, position: tuple, font, color: tuple) -> np.ndarray:
-        """
-        Render text using PIL (supports Unicode/emoji).
-
-        Args:
-            frame: OpenCV frame (BGR)
-            text: Text to render (may contain emoji)
-            position: (x, y) position
-            font: PIL font object
-            color: RGB color tuple
-
-        Returns:
-            Modified frame
-        """
-        # Convert BGR to RGB for PIL
+        """Render text using PIL (supports Unicode/emoji)."""
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         pil_img = Image.fromarray(frame_rgb)
         draw = ImageDraw.Draw(pil_img)
-
-        # Draw text with PIL (supports emoji)
         draw.text(position, text, font=font, fill=color)
-
-        # Convert back to BGR for OpenCV
         frame_bgr = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
         return frame_bgr
 
-    def _wrap_text(self, text: str, max_width: int, font) -> list:
+    def _wrap_text(self, text: str, max_width: int, font) -> List[str]:
         """Wrap text to fit width (PIL-aware)."""
         if not self.use_pil:
             # Fallback to simple word wrapping
@@ -243,25 +226,13 @@ class VideoOverlayRenderer:
         return lines
 
     def render_text_panel_sidebyside(self, frame: np.ndarray) -> np.ndarray:
-        """
-        Render text panel for side-by-side layout (below video).
-        Creates 1280x720 output (1280x480 video + 1280x240 text panel).
-
-        Args:
-            frame: Input frame (1280x480 - two streams side by side)
-
-        Returns:
-            Combined frame (1280x720)
-        """
-        # Create text panel (1280x240)
+        """Render text panel for side-by-side layout."""
         text_panel = np.zeros((240, 1280, 3), dtype=np.uint8)
         text_panel.fill(20)  # Dark background
 
         y_offset = 20
 
-        # 1. User Task (persistent, top of panel)
         if self.current_user_task:
-            # Header
             if self.use_pil:
                 text_panel = self._put_text_pil(
                     text_panel, "AUFGABE:", (10, y_offset), self.pil_font_branding, (150, 150, 150)
@@ -270,7 +241,6 @@ class VideoOverlayRenderer:
                 cv2.putText(text_panel, "AUFGABE:", (10, y_offset), self.font, 0.5, (150, 150, 150), 1)
             y_offset += 25
 
-            # Task text (wrapped)
             task_lines = self._wrap_text(self.current_user_task, 1260, self.pil_font_task if self.use_pil else None)
 
             for line in task_lines[:2]:
@@ -281,13 +251,10 @@ class VideoOverlayRenderer:
                         text_panel, line, (10, y_offset), self.font, self.font_scale_task, self.color_task, self.thickness
                     )
                 y_offset += self.line_height
+            y_offset += 10
 
-            y_offset += 10  # Spacing
-
-        # 2. Robot Speech (with emoji support!)
         active_speeches = self._get_active_speeches()
         if active_speeches:
-            # Header
             if self.use_pil:
                 text_panel = self._put_text_pil(
                     text_panel, "ROBOTER:", (10, y_offset), self.pil_font_branding, (150, 150, 150)
@@ -305,7 +272,6 @@ class VideoOverlayRenderer:
                             text_panel, line, (10, y_offset), self.pil_font_speech, self.color_speech
                         )
                     else:
-                        # Strip emoji for OpenCV fallback
                         clean_line = "".join(c for c in line if ord(c) < 128)
                         cv2.putText(
                             text_panel,
@@ -318,30 +284,24 @@ class VideoOverlayRenderer:
                         )
                     y_offset += self.line_height
 
-        # 3. Branding (bottom right)
-        # Add logo
         logo_h, logo_w = self.logo.shape[:2]
         logo_x = 1280 - logo_w - 10
         logo_y = 240 - logo_h - 80
         text_panel[logo_y : logo_y + logo_h, logo_x : logo_x + logo_w] = self.logo
 
-        # Branding text with proper "Köln" rendering
         branding_lines = ["Prof. Dr. Daniel Gaida", "Labor für Physische KI", "TH Köln, Campus Gummersbach"]
 
         brand_y = logo_y + logo_h + 10
         for line in branding_lines:
             if self.use_pil:
-                # Calculate text width for right alignment
                 draw = ImageDraw.Draw(Image.new("RGB", (1, 1)))
                 bbox = draw.textbbox((0, 0), line, font=self.pil_font_branding)
                 text_width = bbox[2] - bbox[0]
                 text_x = 1280 - text_width - 10
-
                 text_panel = self._put_text_pil(
                     text_panel, line, (text_x, brand_y), self.pil_font_branding, self.color_branding
                 )
             else:
-                # OpenCV fallback (no ö)
                 clean_line = line.replace("ö", "o")
                 (text_width, _), _ = cv2.getTextSize(clean_line, self.font, self.font_scale_branding, 1)
                 text_x = 1280 - text_width - 10
@@ -350,36 +310,22 @@ class VideoOverlayRenderer:
                 )
             brand_y += 18
 
-        # Combine video and text panel
         combined = np.vstack([frame, text_panel])
         return combined
 
     def render_text_overlay(self, frame: np.ndarray) -> np.ndarray:
-        """
-        Render text overlay for overlay layout (on top of video).
-        Keeps 640x480 resolution.
-
-        Args:
-            frame: Input frame (640x480)
-
-        Returns:
-            Frame with text overlay (640x480)
-        """
+        """Render text overlay for overlay layout."""
         overlay = frame.copy()
 
-        # 1. User Task (top)
         if self.current_user_task:
-            # Background
             cv2.rectangle(overlay, (0, 0), (640, 80), (0, 0, 0), -1)
             cv2.addWeighted(overlay, 0.6, frame, 0.4, 0, frame)
 
-            # Header
             if self.use_pil:
                 frame = self._put_text_pil(frame, "AUFGABE:", (10, 20), self.pil_font_branding, (150, 150, 150))
             else:
                 cv2.putText(frame, "AUFGABE:", (10, 20), self.font, 0.4, (150, 150, 150), 1)
 
-            # Task text
             task_lines = self._wrap_text(self.current_user_task, 620, self.pil_font_task if self.use_pil else None)
 
             y = 45
@@ -390,7 +336,6 @@ class VideoOverlayRenderer:
                     cv2.putText(frame, line, (10, y), self.font, 0.45, self.color_task, 1)
                 y += 18
 
-        # 2. Robot Speech (middle-bottom)
         active_speeches = self._get_active_speeches()
         if active_speeches:
             overlay = frame.copy()
@@ -414,14 +359,12 @@ class VideoOverlayRenderer:
                     cv2.putText(frame, clean_line, (10, y), self.font, 0.45, self.color_speech, 1)
                 y += 18
 
-        # 3. Branding (bottom right)
         overlay = frame.copy()
         cv2.rectangle(overlay, (640 - 280, 480 - 120), (640, 480), (0, 0, 0), -1)
         cv2.addWeighted(overlay, 0.7, frame, 0.3, 0, frame)
 
-        # Smaller logo (keep aspect ratio)
         logo_h, logo_w = self.logo.shape[:2]
-        small_w = 166  # 250 * 0.66
+        small_w = 166
         small_h = int(logo_h * (small_w / logo_w))
         small_logo = cv2.resize(self.logo, (small_w, small_h))
 
@@ -429,9 +372,7 @@ class VideoOverlayRenderer:
         logo_y = 480 - 115
         frame[logo_y : logo_y + small_h, logo_x : logo_x + small_w] = small_logo
 
-        # Branding text
         branding_lines = ["Prof. Dr. D. Gaida", "TH Köln"]
-
         y = 480 - 50
         for line in branding_lines:
             if self.use_pil:
@@ -444,7 +385,7 @@ class VideoOverlayRenderer:
         return frame
 
 
-class EnhancedCameraRecorder:
+class EnhancedCameraRecorder(BaseVideoRecorder):
     """Enhanced camera recorder with Unicode text overlays."""
 
     def __init__(
@@ -453,7 +394,7 @@ class EnhancedCameraRecorder:
         stream_name: str = "annotated_camera",
         host: str = "localhost",
         port: int = 6379,
-        output_file: str = None,
+        output_file: Optional[str] = None,
         fps: int = 30,
         width: int = 640,
         height: int = 480,
@@ -461,60 +402,27 @@ class EnhancedCameraRecorder:
         screenshot_dir: str = "screenshots",
         layout: str = "side-by-side",
     ):
-        """
-        Initialize the recorder.
-
-        Args:
-            camera_id: USB camera device ID
-            stream_name: Redis stream name for annotated images
-            host: Redis server host
-            port: Redis server port
-            output_file: Output video file path (auto-generated if None)
-            fps: Recording frame rate
-            width: Camera frame width
-            height: Camera frame height
-            codec: Video codec (mp4v, XVID, H264, etc.)
-            screenshot_dir: Directory for screenshots
-            layout: 'side-by-side' or 'overlay'
-        """
-        self.camera_id = camera_id
-        self.stream_name = stream_name
-        self.fps = fps
-        self.width = width
-        self.height = height
+        super().__init__(
+            camera_id=camera_id,
+            stream_name=stream_name,
+            host=host,
+            port=port,
+            fps=fps,
+            width=width,
+            height=height,
+            output_file=output_file,
+            codec=codec,
+        )
         self.layout = layout
         self.screenshot_dir = Path(screenshot_dir)
         self.screenshot_dir.mkdir(exist_ok=True)
 
-        # Generate output filename
-        if output_file is None:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            self.output_file = f"recording_{timestamp}.mp4"
-        else:
-            self.output_file = output_file
-
-        # Initialize camera
-        print(f"Opening camera {camera_id}...")
-        self.camera = cv2.VideoCapture(camera_id)
-
-        if not self.camera.isOpened():
-            raise RuntimeError(f"Failed to open camera {camera_id}")
-
-        self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-        self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-        self.camera.set(cv2.CAP_PROP_FPS, fps)
-        print("✓ Camera opened")
-
-        # Initialize Redis
         try:
-            self.image_streamer = RedisImageStreamer(host=host, port=port, stream_name=stream_name)
             self.text_manager = RedisTextOverlayManager(host=host, port=port)
-            print(f"✓ Connected to Redis at {host}:{port}")
         except Exception as e:
             self.camera.release()
-            raise RuntimeError(f"Failed to connect to Redis: {e}")
+            raise RuntimeError(f"Failed to connect to Redis Text Manager: {e}")
 
-        # Initialize overlay renderer
         if layout == "side-by-side":
             output_width = width * 2
             final_width = output_width
@@ -525,7 +433,6 @@ class EnhancedCameraRecorder:
 
         self.overlay_renderer = VideoOverlayRenderer(final_width, final_height, layout)
 
-        # Initialize video writer
         fourcc = cv2.VideoWriter_fourcc(*codec)
         self.writer = cv2.VideoWriter(self.output_file, fourcc, fps, (final_width, final_height))
 
@@ -533,99 +440,36 @@ class EnhancedCameraRecorder:
             self.camera.release()
             raise RuntimeError("Failed to create video writer")
 
-        print(f"✓ Video writer initialized: {self.output_file}")
-        print(f"  Resolution: {final_width}x{final_height}")
-        print(f"  Layout: {layout}")
-        print(f"  Unicode support: {'PIL' if HAS_PIL else 'Limited (OpenCV only)'}")
-
-        # State
-        self.recording = True
-        self.paused = False
-        self.frame_count = 0
-        self.start_time = time.time()
-        self.last_annotated_frame = None
-
-        # Start Redis subscriber
         self.text_update_thread = threading.Thread(target=self._subscribe_text_updates, daemon=True)
         self.text_update_thread.start()
 
-        # Create window
         cv2.namedWindow("Recording", cv2.WINDOW_NORMAL)
         cv2.resizeWindow("Recording", final_width, final_height)
 
-        # Publish recording start
         if self.text_manager:
             self.text_manager.publish_system_message("🎥 Aufnahme gestartet", duration_seconds=3.0)
 
-    def _subscribe_text_updates(self):
+    def _subscribe_text_updates(self) -> None:
         """Background thread for text updates."""
-
         def on_text_update(text_data):
             text_type = text_data["type"]
             text = text_data["text"]
 
             if text_type == "user_task":
                 self.overlay_renderer.update_user_task(text)
-                print(f"📝 User task: {text}")
-
-            elif text_type == "robot_speech":
+            elif text_type in ("robot_speech", "system_message"):
                 duration = text_data["metadata"].get("duration_seconds", 4.0)
                 self.overlay_renderer.add_robot_speech(text, duration)
-                print(f"🤖 Robot speech: {text}")
-
-            elif text_type == "system_message":
-                duration = text_data["metadata"].get("duration_seconds", 3.0)
-                self.overlay_renderer.add_robot_speech(text, duration)
-                print(f"ℹ️ System: {text}")
 
         try:
             self.text_manager.subscribe_to_texts(callback=on_text_update, block_ms=500)
         except Exception as e:
             print(f"Text subscription error: {e}")
 
-    def resize_frame(self, frame: np.ndarray) -> np.ndarray:
-        """Resize frame if needed."""
-        if frame.shape[1] != self.width or frame.shape[0] != self.height:
-            return cv2.resize(frame, (self.width, self.height))
-        return frame
-
-    def create_placeholder_frame(self, text: str = "Waiting for annotated frames...") -> np.ndarray:
-        """
-        Create placeholder frame when annotated frame is not available.
-
-        Args:
-            text: Text to display
-
-        Returns:
-            Placeholder frame
-        """
-        placeholder = np.zeros((self.height, self.width, 3), dtype=np.uint8)
-        cv2.putText(
-            placeholder,
-            "Waiting for annotated frames...",
-            ((self.width - 400) // 2, self.height // 2),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.7,
-            (128, 128, 128),
-            2,
-        )
-        return placeholder
-
-    def combine_frames(self, camera_frame: np.ndarray, annotated_frame: np.ndarray = None) -> np.ndarray:
-        """
-        Combine camera and annotated frames based on layout.
-
-        Args:
-            camera_frame: Camera frame
-            annotated_frame: Annotated frame (optional)
-
-        Returns:
-            Combined frame
-        """
-        # Ensure camera frame is correct size
+    def process_frame(self, camera_frame: np.ndarray, annotated_frame: Optional[np.ndarray]) -> np.ndarray:
+        """Combine camera and annotated frames."""
         camera_frame = self.resize_frame(camera_frame)
 
-        # Handle missing annotated frame
         if annotated_frame is None:
             if self.last_annotated_frame is not None:
                 annotated_frame = self.last_annotated_frame
@@ -636,156 +480,69 @@ class EnhancedCameraRecorder:
             self.last_annotated_frame = annotated_frame.copy()
 
         if self.layout == "side-by-side":
-            # Concatenate horizontally
             combined = np.hstack([camera_frame, annotated_frame])
-        else:  # overlay
-            # Place annotated frame on right side with transparency
+            display_frame = self.overlay_renderer.render_text_panel_sidebyside(combined)
+        else:
+            # overlay
             combined = camera_frame.copy()
             overlay_width = self.width // 2
             overlay_height = self.height // 2
-
-            # Resize annotated frame for overlay
             overlay = cv2.resize(annotated_frame, (overlay_width, overlay_height))
 
-            # Position in bottom-right corner
             y_offset = self.height - overlay_height - 10
             x_offset = self.width - overlay_width - 10
-
-            roi = combined[
-                y_offset : y_offset + overlay_height,
-                x_offset : x_offset + overlay_width,
-            ]
+            roi = combined[y_offset : y_offset + overlay_height, x_offset : x_offset + overlay_width]
             blended = cv2.addWeighted(overlay, 0.7, roi, 0.3, 0)
-            combined[
-                y_offset : y_offset + overlay_height,
-                x_offset : x_offset + overlay_width,
-            ] = blended
+            combined[y_offset : y_offset + overlay_height, x_offset : x_offset + overlay_width] = blended
+            display_frame = self.overlay_renderer.render_text_overlay(combined)
 
-        return combined
+        return display_frame
 
-    def run(self):
+    def run(self) -> None:
         """Main recording loop."""
-        print("\n" + "=" * 60)
-        print("Recording started - Press 'q' to stop")
-        print("=" * 60 + "\n")
-
-        no_frame_warning_shown = False
-
         try:
             while self.recording:
-                # Read camera frame
                 ret, camera_frame = self.camera.read()
                 if not ret:
-                    print("✗ Failed to read from camera")
                     break
 
-                # Get annotated frame
-                annotated_frame = None
                 result = self.image_streamer.get_latest_image()
+                annotated_frame = result[0] if result else None
 
-                if result:
-                    annotated_frame, metadata = result
-                    no_frame_warning_shown = False
-                elif not no_frame_warning_shown:
-                    print("⚠ No annotated frames available")
-                    no_frame_warning_shown = True
+                display_frame = self.process_frame(camera_frame, annotated_frame)
 
-                # Combine frames
-                combined_frame = self.combine_frames(camera_frame, annotated_frame)
-
-                # Apply text overlays
-                if self.layout == "side-by-side":
-                    display_frame = self.overlay_renderer.render_text_panel_sidebyside(combined_frame)
-                else:
-                    display_frame = self.overlay_renderer.render_text_overlay(combined_frame)
-
-                # Write frame if not paused
                 if not self.paused:
                     self.writer.write(display_frame)
                     self.frame_count += 1
 
-                # Display
                 cv2.imshow("Recording", display_frame)
-
-                # Keyboard
                 key = cv2.waitKey(1) & 0xFF
-
                 if key == ord("q") or key == 27:
-                    print("\nStopping recording...")
                     self.recording = False
-
                 elif key == ord("p"):
                     self.paused = not self.paused
-                    print(f"Recording {'paused' if self.paused else 'resumed'}")
-
                 elif key == ord("s"):
                     self.save_screenshot(display_frame)
 
         except KeyboardInterrupt:
-            print("\n\nRecording interrupted")
-
+            pass
         finally:
             self.cleanup()
 
-    def save_screenshot(self, frame: np.ndarray):
+    def save_screenshot(self, frame: np.ndarray) -> None:
         """Save screenshot."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = self.screenshot_dir / f"screenshot_{timestamp}.png"
+        cv2.imwrite(str(filename), frame)
 
-        try:
-            cv2.imwrite(str(filename), frame)
-            print(f"✓ Screenshot: {filename}")
-        except Exception as e:
-            print(f"✗ Screenshot failed: {e}")
-
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Clean up resources."""
-        print("\nCleaning up...")
-
-        self.camera.release()
         self.writer.release()
-        cv2.destroyAllWindows()
-
-        elapsed = time.time() - self.start_time
-        minutes = int(elapsed // 60)
-        seconds = int(elapsed % 60)
-
-        print("\n" + "=" * 60)
-        print("RECORDING SUMMARY")
-        print("=" * 60)
-        print(f"  Output:      {self.output_file}")
-        print(f"  Frames:      {self.frame_count}")
-        print(f"  Duration:    {minutes:02d}:{seconds:02d}")
-        print(f"  Avg FPS:     {self.frame_count / elapsed:.1f}")
-        print("=" * 60 + "\n")
+        super().cleanup()
 
 
 def main():
-    """Main entry point."""
-    parser = argparse.ArgumentParser(
-        description="Enhanced camera recorder with Unicode/emoji support",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  # Basic recording
-  python record_camera_with_annotations.py
-
-  # Use camera 1 with custom stream
-  python record_camera_with_annotations.py --camera 1 --stream my_annotations
-
-  # Custom output file and frame rate
-  python record_camera_with_annotations.py --output demo.mp4 --fps 60
-
-  # Overlay layout instead of side-by-side
-  python record_camera_with_annotations.py --layout overlay
-
-Controls:
-  q/ESC : Stop recording
-  p     : Pause/unpause
-  s     : Take screenshot
-        """,
-    )
-
+    parser = argparse.ArgumentParser(description="Enhanced camera recorder")
     parser.add_argument("--camera", type=int, default=0)
     parser.add_argument("--stream", type=str, default="annotated_camera")
     parser.add_argument("--host", type=str, default="localhost")
@@ -794,39 +551,21 @@ Controls:
     parser.add_argument("--fps", type=int, default=30)
     parser.add_argument("--width", type=int, default=640)
     parser.add_argument("--height", type=int, default=480)
-    parser.add_argument("--codec", type=str, default="mp4v")
     parser.add_argument("--layout", type=str, default="side-by-side", choices=["side-by-side", "overlay"])
-    parser.add_argument("--screenshot-dir", type=str, default="screenshots")
-
     args = parser.parse_args()
 
-    print("\n" + "=" * 60)
-    print("  ENHANCED CAMERA RECORDER WITH TEXT OVERLAYS")
-    print("=" * 60)
-
-    try:
-        recorder = EnhancedCameraRecorder(
-            camera_id=args.camera,
-            stream_name=args.stream,
-            host=args.host,
-            port=args.port,
-            output_file=args.output,
-            fps=args.fps,
-            width=args.width,
-            height=args.height,
-            codec=args.codec,
-            screenshot_dir=args.screenshot_dir,
-            layout=args.layout,
-        )
-
-        recorder.run()
-
-    except Exception as e:
-        print(f"\n✗ Error: {e}")
-        return 1
-
-    return 0
-
+    recorder = EnhancedCameraRecorder(
+        camera_id=args.camera,
+        stream_name=args.stream,
+        host=args.host,
+        port=args.port,
+        output_file=args.output,
+        fps=args.fps,
+        width=args.width,
+        height=args.height,
+        layout=args.layout,
+    )
+    recorder.run()
 
 if __name__ == "__main__":
-    exit(main())
+    main()

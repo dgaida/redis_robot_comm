@@ -38,7 +38,9 @@ This package serves as the communication backbone for robotics frameworks:
 - **[robot_environment](https://github.com/dgaida/robot_environment)** - Robot control with visual object recognition
 - **[robot_mcp](https://github.com/dgaida/robot_mcp)** - LLM-based robot control using Model Context Protocol
 
-For detailed workflow documentation, see **[docs/README.md](docs/README.md)**
+For detailed workflow documentation, see **[docs/README.md](docs/README.md)**.
+Detailed information about the architecture and design can be found in **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
+If you are upgrading from an older version, please refer to the **[docs/MIGRATION.md](docs/MIGRATION.md)**.
 
 ### Data Flow via Redis Streams
 
