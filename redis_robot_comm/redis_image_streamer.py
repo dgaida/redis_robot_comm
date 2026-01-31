@@ -1,27 +1,8 @@
 """
-redis_image_streamer
-====================
+RedisImageStreamer
+==================
 
-A small, dependency‑light helper for streaming OpenCV images of **any size** through a Redis stream.
-
-Why Redis Streams?
-------------------
-* **Variable‑size payloads** – Redis streams can store entries of arbitrary length, making them perfect for images that change resolution or format.
-* **Back‑pressure handling** – the `maxlen` argument allows you to keep a bounded queue (e.g. the last 5 frames) without manual eviction logic.
-* **Low latency** – a single `xadd` is <1 ms on a local broker; read with `xread` or `xrevrange` to get the newest frame.
-* **Robustness** – Redis guarantees durability and atomicity for each entry, which is critical in robotics pipelines.
-
-Typical Use‑Case
-----------------
-1. Capture a frame from a camera with OpenCV.
-2. Publish it with :func:`publish_image`.
-3. In a different process, either fetch the last frame with :func:`get_latest_image` or stream frames continuously with :func:`subscribe_variable_images`.
-
-Dependencies
-------------
-* `redis-py <https://pypi.org/project/redis/>`_ – the official Redis client for Python.
-* `opencv‑python <https://pypi.org/project/opencv-python/>`_ – for image encoding/decoding.
-* `numpy <https://pypi.org/project/numpy/>`_ – for array manipulation.
+A helper for streaming OpenCV images of arbitrary size through a Redis stream.
 """
 
 import redis
@@ -29,97 +10,104 @@ import cv2
 import base64
 import json
 import time
+import logging
 import numpy as np
-from typing import Optional, Tuple, Dict, Any
+from typing import Optional, Tuple, Dict, Any, Callable
+from redis.exceptions import RedisError
+
+from .types import ImageArray, ImageMetadata, StreamID
+from .exceptions import RedisConnectionError, RedisPublishError, RedisRetrievalError, InvalidImageError
+from .validators import validate_image, validate_stream_name
+from .utils import retry_on_connection_error
+from .config import RedisConfig, get_redis_config
+
+logger = logging.getLogger(__name__)
 
 
 class RedisImageStreamer:
     """
-    A Redis‑backed stream that can publish and consume OpenCV images of arbitrary size.
+    A Redis-backed stream that can publish and consume OpenCV images of arbitrary size.
 
-    The class serialises an image (either as raw bytes or JPEG) and stores it in a Redis stream.
-    Each entry contains metadata such as the image shape, data type, and optional custom fields
-    (e.g. robot pose, workspace id).
-
-    Parameters
-    ----------
-    host : str, default ``'localhost'``
-        Redis server hostname or IP address.
-    port : int, default ``6379``
-        Redis server port.
-    stream_name : str, default ``'robot_camera'``
-        Name of the stream that will hold the image frames.
-
-    Example
-    -------
-    >>> streamer = RedisImageStreamer(host='redis.example.com', port=6380)
-    >>> frame = cv2.imread('camera_view.png')
-    >>> stream_id = streamer.publish_image(frame, metadata={'pose': [0, 0, 0]})
-    >>> image, meta = streamer.get_latest_image()
-    >>> print(f'Received frame {stream_id} with pose {meta["pose"]}')
+    The class serializes an image (either as raw bytes or JPEG) and stores it in a Redis stream.
+    Each entry contains metadata such as the image shape, data type, and optional custom fields.
     """
 
     def __init__(
         self,
-        host: str = "localhost",
-        port: int = 6379,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
         stream_name: str = "robot_camera",
-    ):
-        self.client = redis.Redis(host=host, port=port, decode_responses=True)
-        self.stream_name = stream_name
+        config: Optional[RedisConfig] = None,
+    ) -> None:
+        """
+        Initialize the Redis image streamer.
 
-        self.verbose = False
+        Args:
+            host: Redis server hostname or IP address.
+            port: Redis server port.
+            stream_name: Name of the stream that will hold the image frames.
+            config: Optional RedisConfig instance.
 
-    # --------------------------------------------------------------------
-    # Publishing API
-    # --------------------------------------------------------------------
+        Raises:
+            RedisConnectionError: If connection to Redis fails.
+        """
+        if config is None:
+            config = get_redis_config()
+
+        # Override config with explicit parameters if provided
+        host = host or config.host
+        port = port or config.port
+
+        validate_stream_name(stream_name)
+        self.stream_name: str = stream_name
+        self.verbose: bool = False
+        try:
+            self.client = redis.Redis(
+                host=host,
+                port=port,
+                db=config.db,
+                password=config.password,
+                socket_timeout=config.socket_timeout,
+                socket_connect_timeout=config.socket_connect_timeout,
+                retry_on_timeout=config.retry_on_timeout,
+                max_connections=config.max_connections,
+                decode_responses=True,
+            )
+            self.client.ping()
+        except RedisError as e:
+            raise RedisConnectionError(f"Failed to connect to Redis: {e}") from e
+
+    @retry_on_connection_error(max_attempts=3, delay=0.5)
     def publish_image(
         self,
-        image: np.ndarray,
-        metadata: Dict[str, Any] = None,
+        image: ImageArray,
+        metadata: Optional[ImageMetadata] = None,
         compress_jpeg: bool = True,
         quality: int = 80,
         maxlen: int = 5,
-    ) -> str:
+    ) -> StreamID:
         """
         Publish a single image frame to the Redis stream.
 
-        The image is serialised in one of two ways:
-        * **JPEG** – compressed with the supplied quality (fast, smaller payload).
-        * **Raw** – the raw NumPy bytes (larger payload, but lossless).
+        Args:
+            image: OpenCV image array (H×W×C or H×W for grayscale).
+            metadata: Arbitrary metadata stored alongside the frame.
+            compress_jpeg: Whether to compress the image to JPEG.
+            quality: JPEG compression quality (1-100).
+            maxlen: Maximum number of entries to keep in the stream.
 
-        Parameters
-        ----------
-        image : np.ndarray
-            OpenCV image array (H×W×C or H×W for grayscale).
-        metadata : dict, optional
-            Arbitrary key/value pairs that will be stored alongside the frame.
-            Typical values: robot pose, timestamp, workspace id, etc.
-        compress_jpeg : bool, default ``True``
-            When ``True`` the image is compressed to JPEG before base64 encoding.
-        quality : int, 1‑100, default ``80``
-            JPEG compression quality (ignored if ``compress_jpeg`` is ``False``).
-        maxlen : int, default ``5``
-            Maximum number of entries to keep in the stream.  Redis will automatically
-            remove the oldest entries when this limit is exceeded.
+        Returns:
+            The unique Redis entry ID.
 
-        Returns
-        -------
-        str
-            The unique Redis entry ID (e.g. ``'1589456675-0'``).
-
-        Raises
-        ------
-        ValueError
-            If the supplied image is not a NumPy array or is empty.
-
-        Example
-        -------
-        >>> streamer.publish_image(cv2.imread('sample.png'), metadata={'id': 42})
-        '1589456675-0'
+        Raises:
+            InvalidImageError: If the supplied image is invalid.
+            RedisPublishError: If publishing to Redis fails.
         """
-        if not isinstance(image, np.ndarray) or image.size == 0:
-            raise ValueError("`image` must be a non‑empty NumPy array")
+        try:
+            validate_image(image)
+        except InvalidImageError as e:
+            logger.error(f"Image validation failed: {e}")
+            raise
 
         timestamp = time.time()
 
@@ -128,8 +116,10 @@ class RedisImageStreamer:
         channels = image.shape[2] if len(image.shape) == 3 else 1
 
         if compress_jpeg:
-            # Compress to JPEG (handles any size)
-            _, buffer = cv2.imencode(".jpg", image, [cv2.IMWRITE_JPEG_QUALITY, quality])
+            # Compress to JPEG
+            success, buffer = cv2.imencode(".jpg", image, [cv2.IMWRITE_JPEG_QUALITY, quality])
+            if not success:
+                raise InvalidImageError("Failed to compress image to JPEG")
             image_data = base64.b64encode(buffer).decode("utf-8")
             format_type = "jpeg"
             compressed_size = len(buffer)
@@ -156,40 +146,25 @@ class RedisImageStreamer:
         if metadata:
             message["metadata"] = json.dumps(metadata)
 
-        # Publish to Redis stream (automatically handles variable sizes)
-        stream_id = self.client.xadd(self.stream_name, message, maxlen=maxlen)
+        # Publish to Redis stream
+        try:
+            stream_id = self.client.xadd(self.stream_name, message, maxlen=maxlen)
+            if self.verbose:
+                logger.info(f"Published {width}x{height} image ({compressed_size} bytes)")
+            return str(stream_id)
+        except RedisError as e:
+            logger.error(f"Failed to publish image to Redis: {e}")
+            raise RedisPublishError(f"Failed to publish image: {e}") from e
 
-        if self.verbose:
-            print(f"Published {width}x{height} image ({compressed_size} bytes)")
-
-        return stream_id
-
-    # --------------------------------------------------------------------
-    # Retrieval API
-    # --------------------------------------------------------------------
-    def get_latest_image(self, timeout_ms: int = 1000) -> Optional[Tuple[np.ndarray, Dict[str, Any]]]:
+    def get_latest_image(self) -> Optional[Tuple[ImageArray, ImageMetadata]]:
         """
         Retrieve the newest frame from the stream.
 
-        The method performs a reverse range query (`xrevrange`) limited to a single entry
-        and then decodes the stored image and metadata.
+        Returns:
+            A tuple of (image_array, metadata_dict) if a frame is present, otherwise None.
 
-        Returns
-        -------
-        tuple
-            ``(image_array, metadata_dict)`` if a frame is present, otherwise ``None``.
-
-        Raises
-        ------
-        RuntimeError
-            If the stream does not exist or is inaccessible.
-
-        Example
-        -------
-        >>> image, meta = streamer.get_latest_image()
-        >>> if image is not None:
-        ...     cv2.imshow('Latest', image)
-        ...     cv2.waitKey(0)
+        Raises:
+            RedisRetrievalError: If retrieval from Redis fails.
         """
         try:
             messages = self.client.xrevrange(self.stream_name, count=1)
@@ -199,47 +174,36 @@ class RedisImageStreamer:
             msg_id, fields = messages[0]
             return self._decode_variable_image(fields)
 
+        except RedisError as e:
+            logger.error(f"Error getting latest image from Redis: {e}")
+            raise RedisRetrievalError(f"Failed to retrieve latest image: {e}") from e
         except Exception as e:
-            if self.verbose:
-                print(f"Error getting latest image: {e}")
+            logger.error(f"Unexpected error getting latest image: {e}")
             return None
 
-    def subscribe_variable_images(self, callback, block_ms: int = 1000, start_after: str = "$"):
+    def subscribe_variable_images(
+        self,
+        callback: Callable[[ImageArray, ImageMetadata, Dict[str, Any]], None],
+        block_ms: int = 1000,
+        start_after: str = "$",
+    ) -> None:
         """
-        Continuously listen for new frames and invoke ``callback`` for each one.
+        Continuously listen for new frames and invoke callback for each one.
 
-        This method blocks the current thread and will only return on a keyboard interrupt
-        or a raised exception.  The callback receives three arguments:
-        ``(image, metadata, image_info)``.
+        Args:
+            callback: Function receiving (image, metadata, image_info).
+            block_ms: Timeout for the underlying Redis xread.
+            start_after: Redis stream ID after which to start reading.
 
-        Parameters
-        ----------
-        callback : callable
-            Function signature: ``callback(image, metadata, image_info)``.
-            * ``image`` – NumPy array of the decoded frame.
-            * ``metadata`` – decoded metadata dictionary (empty if none).
-            * ``image_info`` – dictionary with useful image attributes
-              (width, height, channels, timestamp, compressed_size, original_size).
-        block_ms : int, default ``1000``
-            Timeout for the underlying Redis `xread`.  If no new frames appear within
-            this period the loop continues – useful for graceful shutdown.
-        start_after : str, default ``'$'``
-            Redis stream ID after which to start reading.  ``'$'`` means "only new frames".
-
-        Example
-        -------
-        >>> def on_frame(img, meta, info):
-        ...     print(f"Received {info['width']}×{info['height']} frame")
-        ...     cv2.imshow('Camera', img)
-        ...     cv2.waitKey(1)
-        >>> streamer.subscribe_variable_images(on_frame, block_ms=500)
+        Raises:
+            RedisRetrievalError: If subscription fails.
         """
         last_id = start_after
         if self.verbose:
-            print("Subscribing to variable-size image stream...")
+            logger.info(f"Subscribing to image stream {self.stream_name}...")
 
-        while True:
-            try:
+        try:
+            while True:
                 messages = self.client.xread({self.stream_name: last_id}, block=block_ms, count=1)
 
                 for stream, msgs in messages:
@@ -261,36 +225,24 @@ class RedisImageStreamer:
                             callback(image, metadata, image_info)
                         last_id = msg_id
 
-            except KeyboardInterrupt:
-                if self.verbose:
-                    print("Stopped subscribing to images")
-                break
-            except Exception as e:
-                if self.verbose:
-                    print(f"Error in image subscription: {e}")
-                time.sleep(0.1)
+        except KeyboardInterrupt:
+            logger.info("Stopped subscribing to images")
+        except RedisError as e:
+            logger.error(f"Redis error in image subscription: {e}")
+            raise RedisRetrievalError(f"Image subscription failed: {e}") from e
+        except Exception as e:
+            logger.error(f"Unexpected error in image subscription: {e}")
+            time.sleep(0.1)
 
-    # --------------------------------------------------------------------
-    # Internal helpers
-    # --------------------------------------------------------------------
-    def _decode_variable_image(self, fields) -> Optional[Tuple[np.ndarray, Dict[str, Any]]]:
+    def _decode_variable_image(self, fields: Dict[str, Any]) -> Optional[Tuple[ImageArray, ImageMetadata]]:
         """
         Decode a Redis stream entry that contains an image.
 
-        This private helper is used by :meth:`get_latest_image` and
-        :meth:`subscribe_variable_images`.  It performs base64 decoding, JPEG
-        decompression (if needed) and NumPy reconstruction.
+        Args:
+            fields: key/value pairs from a Redis entry.
 
-        Parameters
-        ----------
-        fields : dict
-            key/value pairs from a Redis entry.  Keys are returned as strings
-            (because `decode_responses=True` is set in the constructor).
-
-        Returns
-        -------
-        tuple
-            ``(image_array, metadata_dict)`` or ``None`` if decoding fails.
+        Returns:
+            A tuple of (image_array, metadata_dict) or None if decoding fails.
         """
         try:
             # Extract image parameters
@@ -303,7 +255,7 @@ class RedisImageStreamer:
             image_data = base64.b64decode(fields["image_data"])
 
             if format_type == "jpeg":
-                # Decode JPEG (automatically handles any size)
+                # Decode JPEG
                 nparr = np.frombuffer(image_data, np.uint8)
                 image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
                 if image is None:
@@ -311,6 +263,7 @@ class RedisImageStreamer:
             else:
                 # Decode raw image with specified dimensions
                 dtype = fields["dtype"]
+                shape: Tuple[int, ...]
                 if channels == 1:
                     shape = (height, width)
                 else:
@@ -326,25 +279,15 @@ class RedisImageStreamer:
 
         except Exception as e:
             if self.verbose:
-                print(f"Error decoding variable image: {e}")
+                logger.error(f"Error decoding variable image: {e}")
             return None
 
     def get_stream_stats(self) -> Dict[str, Any]:
         """
         Retrieve bookkeeping information about the Redis stream.
 
-        Returns
-        -------
-        dict
-            Keys:
-            * ``total_messages`` – total entries currently in the stream.
-            * ``first_entry_id`` – ID of the oldest entry (``None`` if stream is empty).
-            * ``last_entry_id``   – ID of the newest entry (``None`` if stream is empty).
-
-        Example
-        -------
-        >>> stats = streamer.get_stream_stats()
-        >>> print(stats["total_messages"])
+        Returns:
+            Dictionary with stream statistics.
         """
         try:
             info = self.client.xinfo_stream(self.stream_name)

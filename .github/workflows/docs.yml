@@ -1,0 +1,29 @@
+name: Documentation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Mermaid CLI
+        run: npm install -g @mermaid-js/mermaid-cli
+
+      - name: Generate diagrams
+        run: |
+          mkdir -p docs/assets
+          # Example generation if mermaid files existed in docs/diagrams/
+          # mmdc -i docs/diagrams/workflow_detector.mmd -o docs/assets/workflow_detector.png
+          # Since we have existing pngs, this is just a placeholder for future use
+          echo "Diagram generation placeholder"
