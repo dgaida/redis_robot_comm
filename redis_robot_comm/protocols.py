@@ -1,8 +1,6 @@
 """Protocol definitions for redis_robot_comm package."""
 
-from typing import Protocol, Optional, List, Dict, Any, Callable
-import numpy as np
-import numpy.typing as npt
+from typing import Protocol, Optional, List, Dict, Any
 
 from .types import ImageArray, ImageMetadata, StreamID, ObjectDict, CameraPose
 

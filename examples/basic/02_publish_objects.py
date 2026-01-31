@@ -1,5 +1,4 @@
 from redis_robot_comm import RedisMessageBroker
-import time
 
 def main():
     broker = RedisMessageBroker()

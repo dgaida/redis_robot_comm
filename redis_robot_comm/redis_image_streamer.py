@@ -12,7 +12,7 @@ import json
 import time
 import logging
 import numpy as np
-from typing import Optional, Tuple, Dict, Any, Callable, cast
+from typing import Optional, Tuple, Dict, Any, Callable
 from redis.exceptions import RedisError
 
 from .types import ImageArray, ImageMetadata, StreamID

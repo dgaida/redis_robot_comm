@@ -1,5 +1,4 @@
 import logging
-import time
 from redis_robot_comm import RedisMessageBroker
 from redis_robot_comm.exceptions import RedisConnectionError
 
@@ -9,7 +8,7 @@ logging.basicConfig(level=logging.INFO)
 def main():
     # If Redis is not running, this will fail during initialization
     try:
-        broker = RedisMessageBroker(host="non-existent-host", port=1234)
+        RedisMessageBroker(host="non-existent-host", port=1234)
     except RedisConnectionError as e:
         print(f"Caught expected connection error during init: {e}")
 

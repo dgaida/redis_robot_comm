@@ -3,7 +3,6 @@
 import pytest
 from unittest.mock import MagicMock
 import numpy as np
-import cv2
 
 
 def pytest_addoption(parser):

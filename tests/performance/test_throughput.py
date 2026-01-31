@@ -1,9 +1,7 @@
 """Performance benchmarks for redis_robot_comm."""
 
 import pytest
-import time
 import numpy as np
-from redis_robot_comm import RedisMessageBroker, RedisImageStreamer
 
 
 @pytest.mark.benchmark

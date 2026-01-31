@@ -1,7 +1,6 @@
 """Type definitions for redis_robot_comm package."""
 
-from typing import Any, Dict, List, Optional, Tuple, Union
-import numpy as np
+from typing import Any, Dict, List, Tuple
 import numpy.typing as npt
 
 # Image types

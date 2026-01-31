@@ -5,13 +5,10 @@ Run with: pytest tests/integration/ --redis-url redis://localhost:6379
 """
 
 import pytest
-import time
 import numpy as np
 from redis_robot_comm import (
     RedisMessageBroker,
     RedisImageStreamer,
-    RedisLabelManager,
-    RedisTextOverlayManager,
 )
 
 

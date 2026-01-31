@@ -3,7 +3,7 @@
 import json
 import time
 import logging
-from typing import List, Optional, Dict, Any, Callable, cast
+from typing import Optional, Dict, Any, Callable, cast
 from redis.exceptions import RedisError
 
 import redis
