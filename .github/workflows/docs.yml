@@ -3,27 +3,64 @@ name: Documentation
 on:
   push:
     branches: [ main ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ main ]
+
+permissions:
+  contents: write
 
 jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          fetch-depth: 0
 
-      - name: Install Mermaid CLI
-        run: npm install -g @mermaid-js/mermaid-cli
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
 
-      - name: Generate diagrams
+      - name: Install dependencies
         run: |
-          mkdir -p docs/assets
-          # Example generation if mermaid files existed in docs/diagrams/
-          # mmdc -i docs/diagrams/workflow_detector.mmd -o docs/assets/workflow_detector.png
-          # Since we have existing pngs, this is just a placeholder for future use
-          echo "Diagram generation placeholder"
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -e .
+
+      - name: Run tests and generate coverage
+        run: |
+          pytest tests/ --cov=redis_robot_comm --cov-report=term
+
+      - name: Check API documentation coverage
+        run: |
+          interrogate redis_robot_comm
+
+      - name: Generate Changelog
+        run: |
+          git-cliff -o CHANGELOG.md
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Deploy documentation
+        if: github.event_name == 'push'
+        run: |
+          git fetch origin gh-pages --depth=1 || true
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+            mike deploy --push --update-aliases $VERSION latest
+            mike set-default latest --push
+          elif [[ $GITHUB_REF == refs/heads/main ]]; then
+            mike deploy --push --update-aliases dev dev
+          fi
+
+      - name: Build documentation (PR check)
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdocs build --strict

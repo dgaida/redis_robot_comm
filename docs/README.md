@@ -290,14 +290,14 @@ Manages detectable object labels with:
 
 Using Redis as a communication layer provides several advantages:
 
-✅ **Decoupling** - Producers and consumers operate independently  
-✅ **Asynchronous** - Non-blocking processing enables real-time operation  
-✅ **Persistence** - Redis stores data, enabling replay and debugging  
-✅ **Multi-consumer** - Multiple processes can consume the same stream  
-✅ **Scalability** - Redis handles high-throughput data streams efficiently  
-✅ **Monitoring** - All data flows are visible and inspectable  
-✅ **Fault tolerance** - Consumers can reconnect and resume processing  
-✅ **Language agnostic** - Any Redis client can integrate with the system  
+✅ **Decoupling** - Producers and consumers operate independently
+✅ **Asynchronous** - Non-blocking processing enables real-time operation
+✅ **Persistence** - Redis stores data, enabling replay and debugging
+✅ **Multi-consumer** - Multiple processes can consume the same stream
+✅ **Scalability** - Redis handles high-throughput data streams efficiently
+✅ **Monitoring** - All data flows are visible and inspectable
+✅ **Fault tolerance** - Consumers can reconnect and resume processing
+✅ **Language agnostic** - Any Redis client can integrate with the system
 ✅ **Battle-tested** - Redis is proven in production environments
 
 ### Comparison with Alternatives
@@ -539,8 +539,8 @@ This project is licensed under the **MIT License**. See [../LICENSE](../LICENSE)
 
 ## Contact
 
-**Daniel Gaida**  
-Email: daniel.gaida@th-koeln.de  
+**Daniel Gaida**
+Email: daniel.gaida@th-koeln.de
 GitHub: [@dgaida](https://github.com/dgaida)
 
 Project Link: https://github.com/dgaida/redis_robot_comm

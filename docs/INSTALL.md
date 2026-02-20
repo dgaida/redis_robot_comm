@@ -98,8 +98,8 @@ This project is licensed under the **MIT License**. See [../LICENSE](../LICENSE)
 
 ## Contact
 
-**Daniel Gaida**  
-Email: daniel.gaida@th-koeln.de  
+**Daniel Gaida**
+Email: daniel.gaida@th-koeln.de
 GitHub: [@dgaida](https://github.com/dgaida)
 
 Project Link: https://github.com/dgaida/redis_robot_comm

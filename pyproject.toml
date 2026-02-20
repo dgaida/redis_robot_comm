@@ -46,3 +46,22 @@ extend-exclude = '''
   | dist
 )/
 '''
+
+[tool.interrogate]
+ignore-init-method = true
+ignore-init-module = false
+ignore-magic = false
+ignore-semiprivate = false
+ignore-private = false
+ignore-property-decorators = false
+ignore-module = false
+ignore-nested-functions = false
+fail-under = 95
+exclude = ["setup.py", "docs", "build", "tests"]
+ignore-regex = ["^test_"]
+verbose = 2
+quiet = false
+whitelist-regex = []
+color = true
+generate-badge = "docs/assets/images"
+badge-format = "svg"

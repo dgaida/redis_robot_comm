@@ -1,0 +1,45 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0
+benchmark: 5.2.3 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /app
+configfile: pyproject.toml
+plugins: cov-7.0.0, benchmark-5.2.3
+collected 116 items
+
+tests/integration/test_integration_redis.py ss                           [  1%]
+tests/performance/test_throughput.py ..                                  [  3%]
+tests/test_redis_label_manager.py ..........................             [ 25%]
+tests/test_redis_robot_comm.py ...................                       [ 42%]
+tests/test_redis_robot_comm_extended.py ..............................   [ 68%]
+tests/test_redis_text_overlay.py .....................................   [100%]
+
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.12-final-0 _______________
+
+Name                                       Stmts   Miss  Cover   Missing
+------------------------------------------------------------------------
+redis_robot_comm/__init__.py                   6      0   100%
+redis_robot_comm/config.py                    38      5    87%   32-37, 80
+redis_robot_comm/exceptions.py                10      0   100%
+redis_robot_comm/protocols.py                 10     10     0%   3-42
+redis_robot_comm/redis_client.py             140     21    85%   88-89, 134-135, 182-187, 226-227, 242, 278-279, 297-299, 315-317
+redis_robot_comm/redis_image_streamer.py     127     10    92%   85-86, 132, 165-167, 190-191, 245-246
+redis_robot_comm/redis_label_manager.py      123     12    90%   74-75, 113-114, 164-165, 201, 209-211, 258-259
+redis_robot_comm/redis_text_overlay.py       134     10    93%   83-84, 193-194, 248-249, 290-291, 347-348
+redis_robot_comm/types.py                     10      0   100%
+redis_robot_comm/utils.py                     25      7    72%   45-57
+redis_robot_comm/validators.py                38     12    68%   20, 24, 28, 31, 51, 54, 58, 63, 77, 80, 83, 89
+------------------------------------------------------------------------
+TOTAL                                        661     87    87%
+
+---------------------------------------------------------------------------------------- benchmark: 2 tests ---------------------------------------------------------------------------------------
+Name (time in ms)                         Min               Max              Mean            StdDev            Median               IQR            Outliers       OPS            Rounds  Iterations
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+test_object_publish_throughput         1.7237 (1.0)      2.5793 (1.0)      1.8665 (1.0)      0.0966 (1.0)      1.8521 (1.0)      0.0834 (1.0)         61;21  535.7744 (1.0)         451           1
+test_image_compression_performance     3.7404 (2.17)     6.5973 (2.56)     4.4529 (2.39)     0.9143 (9.46)     3.9480 (2.13)     1.8521 (22.21)        58;0  224.5728 (0.42)        226           1
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Legend:
+  Outliers: 1 Standard Deviation from Mean; 1.5 IQR (InterQuartile Range) from 1st Quartile and 3rd Quartile.
+  OPS: Operations Per Second, computed as 1 / Mean
+======================== 114 passed, 2 skipped in 3.92s ========================

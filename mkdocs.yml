@@ -1,0 +1,123 @@
+site_name: redis_robot_comm
+site_url: https://dgaida.github.io/redis_robot_comm/
+repo_url: https://github.com/dgaida/redis_robot_comm
+repo_name: dgaida/redis_robot_comm
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: de
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.tracking
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Wechseln zu Dark Mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Wechseln zu Light Mode
+
+plugins:
+  - i18n:
+      docs_structure: folder
+      languages:
+        - locale: de
+          name: Deutsch
+          build: true
+          default: true
+        - locale: en
+          name: English
+          build: true
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_category_heading: true
+  - mermaid2
+  - mike:
+      alias_type: symlink
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:mermaid2.fence_mermaid
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path: ["."]
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+extra:
+  version:
+    provider: mike
+
+exclude_docs: |
+  ARCHITECTURE.md
+  INSTALL.md
+  MIGRATION.md
+  README.md
+  TESTING.md
+  api.md
+  text_overlay_readme.md
+  diagrams/*.mmd
+  tex/*.tex
+
+nav:
+  - Überblick: index.md
+  - Erste Schritte: getting-started.md
+  - Installation: installation.md
+  - Konfiguration: configuration.md
+  - Benutzung:
+      - Objekterkennung: usage/detection.md
+      - Bild-Streaming: usage/streaming.md
+      - Label-Verwaltung: usage/labels.md
+      - Text-Overlays: usage/text_overlays.md
+  - API-Referenz:
+      - RedisMessageBroker: api/broker.md
+      - RedisImageStreamer: api/streamer.md
+      - RedisLabelManager: api/labels.md
+      - RedisTextOverlayManager: api/text_overlay.md
+  - Architektur:
+      - Systemübersicht: architecture/index.md
+      - Datenfluss: architecture/data_flow.md
+  - Entwicklung:
+      - Beitragen: development/contributing.md
+      - Tests: development/testing.md
+      - Metriken: development/metrics.md
+  - Fehlerbehebung: troubleshooting.md
+  - Changelog: changelog.md

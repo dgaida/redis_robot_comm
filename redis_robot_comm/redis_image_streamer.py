@@ -2,7 +2,8 @@
 RedisImageStreamer
 ==================
 
-A helper for streaming OpenCV images of arbitrary size through a Redis stream.
+Ein Hilfsmittel zum Streamen von OpenCV-Bildern beliebiger Größe über einen Redis-Stream.
+(A helper for streaming OpenCV images of arbitrary size through a Redis stream).
 """
 
 import redis
@@ -26,7 +27,12 @@ logger = logging.getLogger(__name__)
 
 class RedisImageStreamer:
     """
+    Ein Redis-basierter Stream, der OpenCV-Bilder beliebiger Größe veröffentlichen und empfangen kann.
+
     A Redis-backed stream that can publish and consume OpenCV images of arbitrary size.
+
+    Die Klasse serialisiert ein Bild (entweder als Rohdaten oder JPEG) und speichert es in einem Redis-Stream.
+    Jeder Eintrag enthält Metadaten wie die Bildform, den Datentyp und optionale benutzerdefinierte Felder.
 
     The class serializes an image (either as raw bytes or JPEG) and stores it in a Redis stream.
     Each entry contains metadata such as the image shape, data type, and optional custom fields.
@@ -40,16 +46,18 @@ class RedisImageStreamer:
         config: Optional[RedisConfig] = None,
     ) -> None:
         """
+        Initialisiert den Redis Image Streamer.
+
         Initialize the Redis image streamer.
 
         Args:
-            host: Redis server hostname or IP address.
-            port: Redis server port.
-            stream_name: Name of the stream that will hold the image frames.
-            config: Optional RedisConfig instance.
+            host (Optional[str]): Hostname oder IP-Adresse des Redis-Servers. (Redis server hostname or IP address).
+            port (Optional[int]): Port des Redis-Servers. (Redis server port).
+            stream_name (str): Name des Streams, der die Bild-Frames enthalten wird. (Name of the stream that will hold the image frames).
+            config (Optional[RedisConfig]): Optionale RedisConfig-Instanz. (Optional RedisConfig instance).
 
         Raises:
-            RedisConnectionError: If connection to Redis fails.
+            RedisConnectionError: Wenn die Verbindung zu Redis fehlschlägt. (If connection to Redis fails).
         """
         if config is None:
             config = get_redis_config()
@@ -87,21 +95,23 @@ class RedisImageStreamer:
         maxlen: int = 5,
     ) -> StreamID:
         """
+        Veröffentlicht einen einzelnen Bild-Frame im Redis-Stream.
+
         Publish a single image frame to the Redis stream.
 
         Args:
-            image: OpenCV image array (H×W×C or H×W for grayscale).
-            metadata: Arbitrary metadata stored alongside the frame.
-            compress_jpeg: Whether to compress the image to JPEG.
-            quality: JPEG compression quality (1-100).
-            maxlen: Maximum number of entries to keep in the stream.
+            image (ImageArray): OpenCV-Bild-Array (HxWxC oder HxW für Graustufen). (OpenCV image array (H×W×C or H×W for grayscale)).
+            metadata (Optional[ImageMetadata]): Beliebige Metadaten, die zusammen mit dem Frame gespeichert werden. (Arbitrary metadata stored alongside the frame).
+            compress_jpeg (bool): Gibt an, ob das Bild in das JPEG-Format komprimiert werden soll. (Whether to compress the image to JPEG).
+            quality (int): JPEG-Kompressionsqualität (1-100). (JPEG compression quality (1-100)).
+            maxlen (int): Maximale Anzahl von Einträgen, die im Stream gehalten werden sollen. (Maximum number of entries to keep in the stream).
 
         Returns:
-            The unique Redis entry ID.
+            StreamID: Die eindeutige Redis-Eintrags-ID. (The unique Redis entry ID).
 
         Raises:
-            InvalidImageError: If the supplied image is invalid.
-            RedisPublishError: If publishing to Redis fails.
+            InvalidImageError: Wenn das bereitgestellte Bild ungültig ist. (If the supplied image is invalid).
+            RedisPublishError: Wenn die Veröffentlichung bei Redis fehlschlägt. (If publishing to Redis fails).
         """
         try:
             validate_image(image)
@@ -158,13 +168,15 @@ class RedisImageStreamer:
 
     def get_latest_image(self) -> Optional[Tuple[ImageArray, ImageMetadata]]:
         """
+        Ruft den neuesten Frame aus dem Stream ab.
+
         Retrieve the newest frame from the stream.
 
         Returns:
-            A tuple of (image_array, metadata_dict) if a frame is present, otherwise None.
+            Optional[Tuple[ImageArray, ImageMetadata]]: Ein Tupel aus (image_array, metadata_dict), falls ein Frame vorhanden ist, andernfalls None. (A tuple of (image_array, metadata_dict) if a frame is present, otherwise None).
 
         Raises:
-            RedisRetrievalError: If retrieval from Redis fails.
+            RedisRetrievalError: Wenn der Abruf von Redis fehlschlägt. (If retrieval from Redis fails).
         """
         try:
             messages = self.client.xrevrange(self.stream_name, count=1)
@@ -188,15 +200,17 @@ class RedisImageStreamer:
         start_after: str = "$",
     ) -> None:
         """
+        Hört kontinuierlich auf neue Frames und ruft für jeden Frame einen Callback auf.
+
         Continuously listen for new frames and invoke callback for each one.
 
         Args:
-            callback: Function receiving (image, metadata, image_info).
-            block_ms: Timeout for the underlying Redis xread.
-            start_after: Redis stream ID after which to start reading.
+            callback (Callable[[ImageArray, ImageMetadata, Dict[str, Any]], None]): Funktion, die (image, metadata, image_info) erhält. (Function receiving (image, metadata, image_info)).
+            block_ms (int): Zeitüberschreitung für das zugrunde liegende Redis xread. (Timeout for the underlying Redis xread).
+            start_after (str): Redis-Stream-ID, nach der mit dem Lesen begonnen werden soll. (Redis stream ID after which to start reading).
 
         Raises:
-            RedisRetrievalError: If subscription fails.
+            RedisRetrievalError: Wenn das Abonnement fehlschlägt. (If subscription fails).
         """
         last_id = start_after
         if self.verbose:
@@ -236,13 +250,15 @@ class RedisImageStreamer:
 
     def _decode_variable_image(self, fields: Dict[str, Any]) -> Optional[Tuple[ImageArray, ImageMetadata]]:
         """
+        Dekodiert einen Redis-Stream-Eintrag, der ein Bild enthält.
+
         Decode a Redis stream entry that contains an image.
 
         Args:
-            fields: key/value pairs from a Redis entry.
+            fields (Dict[str, Any]): Schlüssel/Wert-Paare aus einem Redis-Eintrag. (Key/value pairs from a Redis entry).
 
         Returns:
-            A tuple of (image_array, metadata_dict) or None if decoding fails.
+            Optional[Tuple[ImageArray, ImageMetadata]]: Ein Tupel aus (image_array, metadata_dict) oder None, falls die Dekodierung fehlschlägt. (A tuple of (image_array, metadata_dict) or None if decoding fails).
         """
         try:
             # Extract image parameters
@@ -284,10 +300,12 @@ class RedisImageStreamer:
 
     def get_stream_stats(self) -> Dict[str, Any]:
         """
+        Ruft Buchhaltungsinformationen über den Redis-Stream ab.
+
         Retrieve bookkeeping information about the Redis stream.
 
         Returns:
-            Dictionary with stream statistics.
+            Dict[str, Any]: Dictionary mit Stream-Statistiken. (Dictionary with stream statistics).
         """
         try:
             info = self.client.xinfo_stream(self.stream_name)

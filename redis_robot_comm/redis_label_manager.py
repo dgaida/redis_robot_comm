@@ -1,4 +1,4 @@
-"""Redis-based manager for detectable object labels."""
+"""Redis-basierter Manager für erkennbare Objektlabels. (Redis-based manager for detectable object labels)."""
 
 import json
 import time
@@ -19,10 +19,12 @@ logger = logging.getLogger(__name__)
 
 class RedisLabelManager:
     """
+    Verwaltet erkennbare Objektlabels über Redis-Streams.
+
     Manages detectable object labels via Redis streams.
 
-    Publishers (vision_detect_segment): Publish available labels when they change.
-    Consumers (robot_environment): Subscribe to get current detectable labels.
+    Publisher (vision_detect_segment): Veröffentlichen verfügbare Labels, wenn diese sich ändern. (Publish available labels when they change).
+    Consumer (robot_environment): Abonnieren, um aktuelle erkennbare Labels zu erhalten. (Subscribe to get current detectable labels).
     """
 
     def __init__(
@@ -33,16 +35,18 @@ class RedisLabelManager:
         config: Optional[RedisConfig] = None,
     ) -> None:
         """
+        Initialisiert den Label-Manager.
+
         Initialize the label manager.
 
         Args:
-            host: Redis server host.
-            port: Redis server port.
-            stream_name: Name of the Redis stream for labels.
-            config: Optional RedisConfig instance.
+            host (Optional[str]): Redis-Server-Host. (Redis server host).
+            port (Optional[int]): Redis-Server-Port. (Redis server port).
+            stream_name (str): Name des Redis-Streams für Labels. (Name of the Redis stream for labels).
+            config (Optional[RedisConfig]): Optionale RedisConfig-Instanz. (Optional RedisConfig instance).
 
         Raises:
-            RedisConnectionError: If connection to Redis fails.
+            RedisConnectionError: Wenn die Verbindung zu Redis fehlschlägt. (If connection to Redis fails).
         """
         if config is None:
             config = get_redis_config()
@@ -73,17 +77,19 @@ class RedisLabelManager:
     @retry_on_connection_error(max_attempts=3, delay=0.5)
     def publish_labels(self, labels: LabelList, metadata: Optional[Dict[str, Any]] = None) -> Optional[StreamID]:
         """
+        Veröffentlicht die aktuelle Liste der erkennbaren Objektlabels.
+
         Publish the current list of detectable object labels.
 
         Args:
-            labels: List of object label strings.
-            metadata: Optional metadata (e.g., model_id, timestamp).
+            labels (LabelList): Liste der Objektlabel-Strings. (List of object label strings).
+            metadata (Optional[Dict[str, Any]]): Optionale Metadaten (z. B. model_id, Zeitstempel). (Optional metadata (e.g., model_id, timestamp)).
 
         Returns:
-            Redis stream entry ID, or None if publishing fails.
+            Optional[StreamID]: Redis-Stream-Eintrags-ID oder None, falls die Veröffentlichung fehlschlägt. (Redis stream entry ID, or None if publishing fails).
 
         Raises:
-            RedisPublishError: If publishing to Redis fails.
+            RedisPublishError: Wenn die Veröffentlichung bei Redis fehlschlägt. (If publishing to Redis fails).
         """
         message = {
             "timestamp": str(time.time()),
@@ -112,16 +118,18 @@ class RedisLabelManager:
 
     def get_latest_labels(self, timeout_seconds: float = 5.0) -> Optional[LabelList]:
         """
+        Ruft die aktuellste Liste der erkennbaren Labels ab.
+
         Get the most recent list of detectable labels.
 
         Args:
-            timeout_seconds: Maximum age of labels to accept.
+            timeout_seconds (float): Maximales Alter der zu akzeptierenden Labels. (Maximum age of labels to accept).
 
         Returns:
-            List of label strings, or None if not available or too old.
+            Optional[LabelList]: Liste der Label-Strings oder None, falls nicht verfügbar oder zu alt. (List of label strings, or None if not available or too old).
 
         Raises:
-            RedisRetrievalError: If retrieval from Redis fails.
+            RedisRetrievalError: Wenn der Abruf von Redis fehlschlägt. (If retrieval from Redis fails).
         """
         try:
             # Get the latest message
@@ -161,13 +169,15 @@ class RedisLabelManager:
 
     def add_label(self, new_label: str) -> bool:
         """
+        Fügt der aktuellen Liste ein neues Label hinzu und veröffentlicht diese neu.
+
         Add a new label to the current list and republish.
 
         Args:
-            new_label: Label to add.
+            new_label (str): Hinzuzufügendes Label. (Label to add).
 
         Returns:
-            True if successful, False otherwise.
+            bool: True bei Erfolg, False andernfalls. (True if successful, False otherwise).
         """
         try:
             # Get current labels
@@ -206,14 +216,16 @@ class RedisLabelManager:
         block_ms: int = 1000,
     ) -> None:
         """
+        Abonniert Label-Updates und ruft den Callback auf, wenn sich diese ändern.
+
         Subscribe to label updates and call callback when they change.
 
         Args:
-            callback: Function receiving (labels, metadata).
-            block_ms: Blocking timeout in milliseconds.
+            callback (Callable[[LabelList, Dict[str, Any]], None]): Funktion, die (labels, metadata) erhält. (Function receiving (labels, metadata)).
+            block_ms (int): Blockier-Timeout in Millisekunden. (Blocking timeout in milliseconds).
 
         Raises:
-            RedisRetrievalError: If subscription fails.
+            RedisRetrievalError: Wenn das Abonnement fehlschlägt. (If subscription fails).
         """
         last_id = "$"  # Start from newest
 
@@ -250,10 +262,12 @@ class RedisLabelManager:
 
     def clear_stream(self) -> bool:
         """
+        Löscht den Labels-Stream.
+
         Clear the labels stream.
 
         Returns:
-            True if successful, False otherwise.
+            bool: True bei Erfolg, False andernfalls. (True if successful, False otherwise).
         """
         try:
             result = self.client.delete(self.stream_name)
