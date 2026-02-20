@@ -58,6 +58,10 @@ jobs:
             mike set-default --push latest
           elif [[ $GITHUB_REF == refs/heads/main ]]; then
             mike deploy --push dev
+            # Ensure a default version is set for the root redirect if it doesn't exist
+            if ! mike list -b gh-pages | grep -q "^latest "; then
+              mike set-default --push dev
+            fi
           fi
 
       - name: Build documentation (PR check)
