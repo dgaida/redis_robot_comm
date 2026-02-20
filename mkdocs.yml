@@ -86,6 +86,17 @@ extra:
   version:
     provider: mike
 
+exclude_docs: |
+  ARCHITECTURE.md
+  INSTALL.md
+  MIGRATION.md
+  README.md
+  TESTING.md
+  api.md
+  text_overlay_readme.md
+  diagrams/*.mmd
+  tex/*.tex
+
 nav:
   - Überblick: index.md
   - Erste Schritte: getting-started.md
