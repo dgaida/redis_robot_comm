@@ -1,4 +1,4 @@
-"""Utility functions for redis_robot_comm package."""
+"""Hilfsfunktionen für das redis_robot_comm Paket. (Utility functions for redis_robot_comm package)."""
 
 import time
 import functools
@@ -18,20 +18,24 @@ def retry_on_connection_error(
     backoff: float = 2.0,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """
+    Decorator zum Wiederholen von Redis-Operationen bei Verbindungsfehlern.
+
     Decorator to retry Redis operations on connection errors.
 
     Args:
-        max_attempts: Maximum number of retry attempts.
-        delay: Initial delay between retries in seconds.
-        backoff: Multiplier for delay after each retry.
+        max_attempts (int): Maximale Anzahl der Wiederholungsversuche. (Maximum number of retry attempts).
+        delay (float): Anfängliche Verzögerung zwischen den Versuchen in Sekunden. (Initial delay between retries in seconds).
+        backoff (float): Multiplikator für die Verzögerung nach jedem Versuch. (Multiplier for delay after each retry).
 
     Returns:
-        Decorated function.
+        Callable: Dekorierte Funktion. (Decorated function).
     """
 
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
+        """Interne Decorator-Funktion. (Internal decorator function)."""
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> T:
+            """Wrapper-Funktion, die die Retry-Logik implementiert. (Wrapper function that implements retry logic)."""
             current_delay = delay
 
             for attempt in range(1, max_attempts + 1):

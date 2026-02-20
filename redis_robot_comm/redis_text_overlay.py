@@ -1,4 +1,4 @@
-"""Redis-based manager for text overlays in robot videos."""
+"""Redis-basierter Manager für Text-Overlays in Roboter-Videos. (Redis-based manager for text overlays in robot videos)."""
 
 import json
 import time
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class TextType(Enum):
-    """Type of text overlay."""
+    """Typ des Text-Overlays. (Type of text overlay)."""
 
     USER_TASK = "user_task"
     ROBOT_SPEECH = "robot_speech"
@@ -28,10 +28,12 @@ class TextType(Enum):
 
 class RedisTextOverlayManager:
     """
+    Verwaltet Text-Overlays für Roboter-Videoaufnahmen über Redis-Streams.
+
     Manages text overlays for robot video recordings via Redis streams.
 
-    Publishers (MCP server): Publish user tasks and robot speech.
-    Consumers (recording script): Subscribe to display texts in video.
+    Publisher (MCP-Server): Veröffentlichen Benutzeraufgaben und Robotersprache. (Publish user tasks and robot speech).
+    Consumer (Aufzeichnungsskript): Abonnieren, um Texte im Video anzuzeigen. (Subscribe to display texts in video).
     """
 
     def __init__(
@@ -42,16 +44,18 @@ class RedisTextOverlayManager:
         config: Optional[RedisConfig] = None,
     ) -> None:
         """
+        Initialisiert den Text-Overlay-Manager.
+
         Initialize the text overlay manager.
 
         Args:
-            host: Redis server host.
-            port: Redis server port.
-            stream_name: Name of the Redis stream for text overlays.
-            config: Optional RedisConfig instance.
+            host (Optional[str]): Redis-Server-Host. (Redis server host).
+            port (Optional[int]): Redis-Server-Port. (Redis server port).
+            stream_name (str): Name des Redis-Streams für Text-Overlays. (Name of the Redis stream for text overlays).
+            config (Optional[RedisConfig]): Optionale RedisConfig-Instanz. (Optional RedisConfig instance).
 
         Raises:
-            RedisConnectionError: If connection to Redis fails.
+            RedisConnectionError: Wenn die Verbindung zu Redis fehlschlägt. (If connection to Redis fails).
         """
         if config is None:
             config = get_redis_config()
@@ -81,14 +85,16 @@ class RedisTextOverlayManager:
 
     def publish_user_task(self, task: str, metadata: Optional[Dict[str, Any]] = None) -> Optional[StreamID]:
         """
+        Veröffentlicht eine Benutzeraufgabe/einen Benutzerbefehl.
+
         Publish a user task/command.
 
         Args:
-            task: The user's natural language task/command.
-            metadata: Optional metadata (e.g., user_id, session_id).
+            task (str): Die Aufgabe/der Befehl des Benutzers in natürlicher Sprache. (The user's natural language task/command).
+            metadata (Optional[Dict[str, Any]]): Optionale Metadaten (z. B. user_id, session_id). (Optional metadata (e.g., user_id, session_id)).
 
         Returns:
-            Redis stream entry ID, or None if publishing fails.
+            Optional[StreamID]: Redis-Stream-Eintrags-ID oder None, falls die Veröffentlichung fehlschlägt. (Redis stream entry ID, or None if publishing fails).
         """
         return self._publish_text(text=task, text_type=TextType.USER_TASK, metadata=metadata)
 
@@ -99,15 +105,17 @@ class RedisTextOverlayManager:
         metadata: Optional[Dict[str, Any]] = None,
     ) -> Optional[StreamID]:
         """
+        Veröffentlicht eine Roboteraussage/-erklärung.
+
         Publish robot speech/explanation.
 
         Args:
-            speech: What the robot is saying.
-            duration_seconds: How long to display the text.
-            metadata: Optional metadata (e.g., tool_name, priority).
+            speech (str): Was der Roboter sagt. (What the robot is saying).
+            duration_seconds (float): Wie lange der Text angezeigt werden soll. (How long to display the text).
+            metadata (Optional[Dict[str, Any]]): Optionale Metadaten (z. B. tool_name, Priorität). (Optional metadata (e.g., tool_name, priority)).
 
         Returns:
-            Redis stream entry ID, or None if publishing fails.
+            Optional[StreamID]: Redis-Stream-Eintrags-ID oder None, falls die Veröffentlichung fehlschlägt. (Redis stream entry ID, or None if publishing fails).
         """
         if metadata is None:
             metadata = {}
@@ -123,15 +131,17 @@ class RedisTextOverlayManager:
         metadata: Optional[Dict[str, Any]] = None,
     ) -> Optional[StreamID]:
         """
+        Veröffentlicht eine Systemnachricht (z. B. "Aufzeichnung gestartet").
+
         Publish system message (e.g., "Recording started").
 
         Args:
-            message: System message text.
-            duration_seconds: How long to display.
-            metadata: Optional metadata.
+            message (str): Text der Systemnachricht. (System message text).
+            duration_seconds (float): Wie lange die Nachricht angezeigt werden soll. (How long to display).
+            metadata (Optional[Dict[str, Any]]): Optionale Metadaten. (Optional metadata).
 
         Returns:
-            Redis stream entry ID, or None if publishing fails.
+            Optional[StreamID]: Redis-Stream-Eintrags-ID oder None, falls die Veröffentlichung fehlschlägt. (Redis stream entry ID, or None if publishing fails).
         """
         if metadata is None:
             metadata = {}
@@ -148,18 +158,20 @@ class RedisTextOverlayManager:
         metadata: Optional[Dict[str, Any]] = None,
     ) -> Optional[StreamID]:
         """
+        Interne Methode zum Veröffentlichen von Text-Overlays.
+
         Internal method to publish text overlay.
 
         Args:
-            text: Text content.
-            text_type: Type of text (user_task, robot_speech, system_message).
-            metadata: Optional metadata.
+            text (str): Textinhalt. (Text content).
+            text_type (TextType): Typ des Textes (user_task, robot_speech, system_message). (Type of text (user_task, robot_speech, system_message)).
+            metadata (Optional[Dict[str, Any]]): Optionale Metadaten. (Optional metadata).
 
         Returns:
-            Redis stream entry ID, or None if publishing fails.
+            Optional[StreamID]: Redis-Stream-Eintrags-ID oder None, falls die Veröffentlichung fehlschlägt. (Redis stream entry ID, or None if publishing fails).
 
         Raises:
-            RedisPublishError: If publishing to Redis fails.
+            RedisPublishError: Wenn die Veröffentlichung bei Redis fehlschlägt. (If publishing to Redis fails).
         """
         message = {
             "timestamp": str(time.time()),
@@ -190,17 +202,19 @@ class RedisTextOverlayManager:
         text_type: Optional[TextType] = None,
     ) -> List[TextOverlayDict]:
         """
+        Ruft aktuelle Text-Overlays ab.
+
         Get recent text overlays.
 
         Args:
-            max_age_seconds: Maximum age of texts to retrieve.
-            text_type: Filter by text type (None = all types).
+            max_age_seconds (float): Maximales Alter der abzurufenden Texte. (Maximum age of texts to retrieve).
+            text_type (Optional[TextType]): Filtern nach Texttyp (None = alle Typen). (Filter by text type (None = all types)).
 
         Returns:
-            List of text overlay dictionaries.
+            List[TextOverlayDict]: Liste von Text-Overlay-Dictionaries. (List of text overlay dictionaries).
 
         Raises:
-            RedisRetrievalError: If retrieval from Redis fails.
+            RedisRetrievalError: Wenn der Abruf von Redis fehlschlägt. (If retrieval from Redis fails).
         """
         try:
             # Get recent messages
@@ -239,16 +253,18 @@ class RedisTextOverlayManager:
 
     def get_current_user_task(self, max_age_seconds: float = 300.0) -> Optional[str]:
         """
+        Ruft die aktuellste Benutzeraufgabe ab (falls noch relevant).
+
         Get the most recent user task (if still relevant).
 
         Args:
-            max_age_seconds: Maximum age to consider current (default: 5 minutes).
+            max_age_seconds (float): Maximales Alter, um als aktuell zu gelten (Standard: 5 Minuten). (Maximum age to consider current (default: 5 minutes)).
 
         Returns:
-            Current user task or None.
+            Optional[str]: Aktuelle Benutzeraufgabe oder None. (Current user task or None).
 
         Raises:
-            RedisRetrievalError: If retrieval from Redis fails.
+            RedisRetrievalError: Wenn der Abruf von Redis fehlschlägt. (If retrieval from Redis fails).
         """
         try:
             messages = self.client.xrevrange(self.stream_name, count=50)
@@ -284,15 +300,17 @@ class RedisTextOverlayManager:
         text_type: Optional[TextType] = None,
     ) -> None:
         """
+        Abonniert Text-Overlays und ruft für jedes einen Callback auf.
+
         Subscribe to text overlays and call callback for each one.
 
         Args:
-            callback: Function receiving text data dictionary.
-            block_ms: Blocking timeout in milliseconds.
-            text_type: Filter by text type (None = all types).
+            callback (Callable[[TextOverlayDict], None]): Funktion, die ein Textdaten-Dictionary erhält. (Function receiving text data dictionary).
+            block_ms (int): Blockier-Timeout in Millisekunden. (Blocking timeout in milliseconds).
+            text_type (Optional[TextType]): Filtern nach Texttyp (None = alle Typen). (Filter by text type (None = all types)).
 
         Raises:
-            RedisRetrievalError: If subscription fails.
+            RedisRetrievalError: Wenn das Abonnement fehlschlägt. (If subscription fails).
         """
         last_id = "$"  # Start from newest
 
@@ -333,10 +351,12 @@ class RedisTextOverlayManager:
 
     def clear_stream(self) -> bool:
         """
+        Löscht den Text-Overlay-Stream.
+
         Clear the text overlay stream.
 
         Returns:
-            True if successful, False otherwise.
+            bool: True bei Erfolg, False andernfalls. (True if successful, False otherwise).
         """
         try:
             result = self.client.delete(self.stream_name)
@@ -349,10 +369,12 @@ class RedisTextOverlayManager:
 
     def get_stream_info(self) -> Dict[str, Any]:
         """
+        Ruft Stream-Statistiken ab.
+
         Get stream statistics.
 
         Returns:
-            Stream information dictionary.
+            Dict[str, Any]: Stream-Informations-Dictionary. (Stream information dictionary).
         """
         try:
             info = self.client.xinfo_stream(self.stream_name)
