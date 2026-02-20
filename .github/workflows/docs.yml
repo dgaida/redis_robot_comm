@@ -53,11 +53,11 @@ jobs:
         run: |
           git fetch origin gh-pages --depth=1 || true
           if [[ $GITHUB_REF == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/}
-            mike deploy --push --update-aliases $VERSION latest
-            mike set-default latest --push
+            TAG=${GITHUB_REF#refs/tags/}
+            mike deploy --push --update-aliases $TAG latest
+            mike set-default --push latest
           elif [[ $GITHUB_REF == refs/heads/main ]]; then
-            mike deploy --push --update-aliases dev dev
+            mike deploy --push dev
           fi
 
       - name: Build documentation (PR check)
