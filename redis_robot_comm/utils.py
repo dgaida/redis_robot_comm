@@ -33,6 +33,7 @@ def retry_on_connection_error(
 
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         """Interne Decorator-Funktion. (Internal decorator function)."""
+
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> T:
             """Wrapper-Funktion, die die Retry-Logik implementiert. (Wrapper function that implements retry logic)."""
