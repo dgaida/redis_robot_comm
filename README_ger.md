@@ -3,6 +3,7 @@
 **Redis-basiertes Kommunikations- und Streaming-Package für Roboteranwendungen.**
 
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
+[![Version](https://img.shields.io/github/v/tag/dgaida/redis_robot_comm?label=version)](https://github.com/dgaida/redis_robot_comm/tags)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Dokumentation](https://img.shields.io/badge/docs-aktuell-blue.svg)](https://dgaida.github.io/redis_robot_comm/)
 [![codecov](https://codecov.io/gh/dgaida/redis_robot_comm/branch/main/graph/badge.svg)](https://codecov.io/gh/dgaida/redis_robot_comm)
