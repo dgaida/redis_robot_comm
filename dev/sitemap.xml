@@ -2,266 +2,266 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/dev/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/deven/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/changelog/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/dev/changelog/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/deven/changelog/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/configuration/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/dev/configuration/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/deven/configuration/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/getting-started/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/dev/getting-started/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/deven/getting-started/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/installation/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/dev/installation/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/deven/installation/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/troubleshooting/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/dev/troubleshooting/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/deven/troubleshooting/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/api/broker/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/dev/api/broker/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/deven/api/broker/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/api/labels/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/dev/api/labels/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/deven/api/labels/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/api/streamer/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/dev/api/streamer/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/deven/api/streamer/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/api/text_overlay/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/dev/api/text_overlay/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/deven/api/text_overlay/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/architecture/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/dev/architecture/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/deven/architecture/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/architecture/data_flow/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/dev/architecture/data_flow/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/deven/architecture/data_flow/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/development/contributing/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/dev/development/contributing/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/deven/development/contributing/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/development/metrics/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/dev/development/metrics/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/deven/development/metrics/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/development/testing/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/dev/development/testing/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/deven/development/testing/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/usage/detection/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/dev/usage/detection/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/deven/usage/detection/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/usage/labels/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/dev/usage/labels/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/deven/usage/labels/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/usage/streaming/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/dev/usage/streaming/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/deven/usage/streaming/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/usage/text_overlays/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/dev/usage/text_overlays/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/deven/usage/text_overlays/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/en/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/dev/en/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/dev"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/en/changelog/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/dev/en/changelog/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/devchangelog/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/en/configuration/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/dev/en/configuration/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/devconfiguration/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/en/getting-started/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/dev/en/getting-started/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/devgetting-started/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/en/installation/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/dev/en/installation/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/devinstallation/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/en/troubleshooting/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/dev/en/troubleshooting/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/devtroubleshooting/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/en/api/broker/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/dev/en/api/broker/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/devapi/broker/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/en/api/labels/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/dev/en/api/labels/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/devapi/labels/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/en/api/streamer/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/dev/en/api/streamer/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/devapi/streamer/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/en/api/text_overlay/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/dev/en/api/text_overlay/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/devapi/text_overlay/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/en/architecture/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/dev/en/architecture/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/devarchitecture/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/en/architecture/data_flow/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/dev/en/architecture/data_flow/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/devarchitecture/data_flow/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/en/development/contributing/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/dev/en/development/contributing/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/devdevelopment/contributing/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/en/development/metrics/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/dev/en/development/metrics/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/devdevelopment/metrics/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/en/development/testing/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/dev/en/development/testing/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/devdevelopment/testing/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/en/usage/detection/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/dev/en/usage/detection/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/devusage/detection/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/en/usage/labels/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/dev/en/usage/labels/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/devusage/labels/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/en/usage/streaming/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/dev/en/usage/streaming/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/devusage/streaming/"/>
     </url>
     <url>
         <loc>https://dgaida.github.io/redis_robot_comm/dev/en/usage/text_overlays/</loc>
-        <lastmod>2026-02-20</lastmod>
+        <lastmod>2026-02-21</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://dgaida.github.io/redis_robot_comm/dev/en/usage/text_overlays/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://dgaida.github.io/redis_robot_comm/devusage/text_overlays/"/>
