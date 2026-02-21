@@ -712,7 +712,7 @@ thread.start()
 
 ## Version Information
 
-- **Package Version**: 0.1.0
+- **Package Version**: 0.1.1
 - **Python Compatibility**: >=3.8
 - **Redis Version**: >=5.0 (for Streams support)
 

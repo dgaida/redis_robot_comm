@@ -13,4 +13,4 @@ from .redis_text_overlay import RedisTextOverlayManager
 
 __all__ = ["RedisMessageBroker", "RedisImageStreamer", "RedisLabelManager", "RedisTextOverlayManager"]
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
