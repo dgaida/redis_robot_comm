@@ -9,6 +9,11 @@
 [![codecov](https://codecov.io/gh/dgaida/redis_robot_comm/branch/main/graph/badge.svg)](https://codecov.io/gh/dgaida/redis_robot_comm)
 [![Tests](https://github.com/dgaida/redis_robot_comm/actions/workflows/tests.yml/badge.svg)](https://github.com/dgaida/redis_robot_comm/actions/workflows/tests.yml)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Code Quality](https://github.com/dgaida/redis_robot_comm/actions/workflows/lint.yml/badge.svg)](https://github.com/dgaida/redis_robot_comm/actions/workflows/lint.yml)
+[![CodeQL](https://github.com/dgaida/redis_robot_comm/actions/workflows/codeql.yml/badge.svg)](https://github.com/dgaida/redis_robot_comm/actions/workflows/codeql.yml)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://dgaida.github.io/redis_robot_comm/)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/dgaida/redis_robot_comm/graphs/commit-activity)
+![Last commit](https://img.shields.io/github/last-commit/dgaida/redis_robot_comm)
 
 ---
 
