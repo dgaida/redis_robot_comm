@@ -4,12 +4,10 @@ Integration tests requiring actual Redis server.
 Run with: pytest tests/integration/ --redis-url redis://localhost:6379
 """
 
-import pytest
 import numpy as np
-from redis_robot_comm import (
-    RedisMessageBroker,
-    RedisImageStreamer,
-)
+import pytest
+
+from redis_robot_comm import RedisImageStreamer, RedisMessageBroker
 
 
 @pytest.fixture(scope="module")

@@ -1,8 +1,9 @@
 """Shared test fixtures for redis_robot_comm tests."""
 
-import pytest
 from unittest.mock import MagicMock
+
 import numpy as np
+import pytest
 
 
 def pytest_addoption(parser):

@@ -1,12 +1,13 @@
 """Base class for video recording with Redis integration."""
 
+import logging
+import time
+from abc import ABC, abstractmethod
+from datetime import datetime
+from typing import Optional
+
 import cv2
 import numpy as np
-import time
-import logging
-from abc import ABC, abstractmethod
-from typing import Optional
-from datetime import datetime
 
 from redis_robot_comm import RedisImageStreamer
 

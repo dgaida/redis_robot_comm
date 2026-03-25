@@ -6,21 +6,22 @@ Ein Hilfsmittel zum Streamen von OpenCV-Bildern beliebiger Größe über einen R
 (A helper for streaming OpenCV images of arbitrary size through a Redis stream).
 """
 
-import redis
-import cv2
 import base64
 import json
-import time
 import logging
+import time
+from typing import Any, Callable, Dict, Optional, Tuple
+
+import cv2
 import numpy as np
-from typing import Optional, Tuple, Dict, Any, Callable
+import redis
 from redis.exceptions import RedisError
 
+from .config import ImageStreamConfig, RedisConfig, get_redis_config
+from .exceptions import InvalidImageError, RedisConnectionError, RedisPublishError, RedisRetrievalError
 from .types import ImageArray, ImageMetadata, StreamID
-from .exceptions import RedisConnectionError, RedisPublishError, RedisRetrievalError, InvalidImageError
-from .validators import validate_image, validate_stream_name
 from .utils import retry_on_connection_error
-from .config import RedisConfig, ImageStreamConfig, get_redis_config
+from .validators import validate_image, validate_stream_name
 
 logger = logging.getLogger(__name__)
 

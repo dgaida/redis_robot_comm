@@ -1,7 +1,0 @@
-category,bug_id,severity,component,description,status
-Functional,BUG-001,Critical,Subscription,Infinite loop in subscriptions on failure,Fixed
-Code Quality,BUG-002,Medium,Core,20 Mypy type errors,Fixed
-Validation,BUG-003,Medium,ImageStreamer,Missing image quality validation,Fixed
-Configuration,BUG-004,Low,ImageStreamer,Underutilized ImageStreamConfig,Fixed
-Functional,BUG-005,Medium,All Managers,Inconsistent error handling,Fixed
-Documentation,BUG-006,Low,Scripts,Doc coverage below 95%,Fixed

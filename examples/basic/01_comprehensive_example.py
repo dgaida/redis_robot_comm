@@ -1,10 +1,12 @@
 #
 
-import time
 import threading
+import time
+
 import cv2
-from redis_robot_comm.redis_client import RedisMessageBroker
+
 from redis_robot_comm import RedisImageStreamer
+from redis_robot_comm.redis_client import RedisMessageBroker
 
 
 # Utility function for easy testing

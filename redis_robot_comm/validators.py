@@ -1,6 +1,7 @@
 """Input validation utilities."""
 
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 import numpy as np
 
 from .exceptions import InvalidImageError, RedisPublishError

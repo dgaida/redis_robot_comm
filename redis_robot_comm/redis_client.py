@@ -2,18 +2,18 @@
 """Redis-basierter Message Broker für Objekterkennungsdaten. (Redis-based message broker for object detection data)."""
 
 import json
-import time
 import logging
-from typing import Dict, List, Optional, Callable, Any, cast
+import time
+from typing import Any, Callable, Dict, List, Optional, cast
 
 import redis
 from redis.exceptions import RedisError
 
-from .types import ObjectDict, CameraPose, StreamID
-from .exceptions import RedisConnectionError, RedisPublishError, RedisRetrievalError
-from .validators import validate_objects, validate_stream_name
-from .utils import retry_on_connection_error
 from .config import RedisConfig, get_redis_config
+from .exceptions import RedisConnectionError, RedisPublishError, RedisRetrievalError, RedisRobotCommError
+from .types import CameraPose, ObjectDict, StreamID
+from .utils import retry_on_connection_error
+from .validators import validate_objects, validate_stream_name
 
 logger = logging.getLogger(__name__)
 
@@ -287,7 +287,10 @@ class RedisMessageBroker:
         Clear the object detection stream.
 
         Returns:
-            bool: True bei Erfolg, False andernfalls. (True if successful, False otherwise).
+            bool: True bei Erfolg. (True if successful).
+
+        Raises:
+            RedisRobotCommError: Falls das Löschen fehlschlägt. (If clearing fails).
         """
         try:
             result = self.client.delete(self.stream_name)
@@ -306,12 +309,15 @@ class RedisMessageBroker:
 
         Returns:
             Dict[str, Any]: Dictionary mit Stream-Informationen. (Dictionary with stream info).
+
+        Raises:
+            RedisRetrievalError: Falls der Abruf der Stream-Informationen fehlschlägt. (If retrieval of stream info fails).
         """
         try:
             info = self.client.xinfo_stream(self.stream_name)
             if self.verbose:
                 logger.info(f"Stream info: {info}")
-            return cast(Optional[Dict[str, Any]], info)
+            return cast(Dict[str, Any], info)
         except Exception as e:
             logger.error(f"Error getting stream info: {e}")
             raise RedisRetrievalError(f"Failed to get stream info: {e}") from e

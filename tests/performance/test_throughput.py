@@ -1,7 +1,7 @@
 """Performance benchmarks for redis_robot_comm."""
 
-import pytest
 import numpy as np
+import pytest
 
 
 @pytest.mark.benchmark

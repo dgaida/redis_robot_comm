@@ -1,8 +1,8 @@
 """Protocol definitions for redis_robot_comm package."""
 
-from typing import Protocol, Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional, Protocol
 
-from .types import ImageArray, ImageMetadata, StreamID, ObjectDict, CameraPose
+from .types import CameraPose, ImageArray, ImageMetadata, ObjectDict, StreamID
 
 
 class RedisStreamPublisher(Protocol):

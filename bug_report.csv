@@ -1,7 +1,0 @@
-BUG-ID,Severity,Category,Component,Description,Impact
-BUG-001,Critical,Functional,Subscription,"Infinite loop in subscribe_* methods when callback fails.","High CPU usage and system hang on message processing failure."
-BUG-002,Medium,Code Quality,All Managers,"20 Mypy type errors related to Redis-py and union types.","Type safety compromised; potential runtime errors."
-BUG-003,Medium,Edge Case,ImageStreamer,"Missing validation for JPEG quality (1-100) and dimensions.","Invalid parameters can lead to OpenCV crashes or poor performance."
-BUG-004,Low,Code Quality,ImageStreamer,"ImageStreamConfig from config.py is underutilized.","Inconsistent configuration management."
-BUG-005,Medium,Functional,All Managers,"Inconsistent error handling; some Redis failures return None instead of raising exceptions.","Suppressed errors make debugging difficult and can lead to silent data loss."
-BUG-006,Low,Documentation,Repository,"Doc coverage (86.7%) is below the mandated 95% threshold.","Lower code maintainability and clarity."

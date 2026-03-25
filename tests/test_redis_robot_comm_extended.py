@@ -1,11 +1,14 @@
 """Extended test suite for redis_robot_comm package to improve code coverage."""
 
-import pytest
-import numpy as np
-import cv2
 import json
 import logging
 from unittest.mock import MagicMock, patch
+
+import cv2
+import numpy as np
+import pytest
+
+from redis_robot_comm.exceptions import RedisRetrievalError
 
 # ============================================================================
 # RedisMessageBroker Extended Tests
@@ -150,8 +153,6 @@ def test_subscribe_objects_error_handling(message_broker, mock_redis_client, cap
     assert "Error processing message" in caplog.text
 
 
-from redis_robot_comm.exceptions import RedisRetrievalError
-
 def test_subscribe_objects_general_exception(message_broker, mock_redis_client, caplog):
     """Test general exception handling in subscribe_objects."""
     mock_redis_client.xread.side_effect = Exception("Connection error")
@@ -207,8 +208,9 @@ def test_test_connection_verbose(message_broker, mock_redis_client, caplog):
 
 def test_publish_image_invalid_input(image_streamer):
     """Test that publish_image raises ValueError for invalid input."""
-    from redis_robot_comm.exceptions import InvalidImageError
     import pytest
+
+    from redis_robot_comm.exceptions import InvalidImageError
 
     with pytest.raises(InvalidImageError, match="must be a NumPy array"):
         image_streamer.publish_image(None)
@@ -443,9 +445,10 @@ def test_custom_stream_name(mock_redis_client):
 
 def test_custom_redis_connection(monkeypatch):
     """Test creating clients with custom Redis connection parameters."""
+    import redis
+
     from redis_robot_comm.redis_client import RedisMessageBroker
     from redis_robot_comm.redis_image_streamer import RedisImageStreamer
-    import redis
 
     mock_redis = MagicMock()
     monkeypatch.setattr(redis, "Redis", mock_redis)

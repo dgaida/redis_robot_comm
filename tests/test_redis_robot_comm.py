@@ -1,8 +1,11 @@
-import pytest
-import numpy as np
-import cv2
 import logging
 from unittest.mock import patch
+
+import cv2
+import numpy as np
+import pytest
+
+from redis_robot_comm.exceptions import RedisPublishError, RedisRetrievalError
 
 
 def test_publish_objects(message_broker, mock_redis_client, sample_objects):
@@ -186,12 +189,9 @@ def test_get_latest_objects_old_message(message_broker, mock_redis_client):
     assert result == []
 
 
-from redis_robot_comm.exceptions import RedisRetrievalError, RedisPublishError
-
 def test_get_stream_stats_error(image_streamer, mock_redis_client):
     """Testet das Abrufen von Stream-Statistiken bei einem Fehler."""
     mock_redis_client.xinfo_stream.side_effect = Exception("Stream not found")
-
     with pytest.raises(RedisRetrievalError, match="Stream not found"):
         image_streamer.get_stream_stats()
 

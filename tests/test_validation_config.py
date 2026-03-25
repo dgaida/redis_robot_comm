@@ -1,9 +1,11 @@
-import pytest
-import numpy as np
 from unittest.mock import ANY
-from redis_robot_comm.redis_image_streamer import RedisImageStreamer
-from redis_robot_comm.exceptions import InvalidImageError
+
+import numpy as np
+import pytest
+
 from redis_robot_comm.config import ImageStreamConfig
+from redis_robot_comm.redis_image_streamer import RedisImageStreamer
+
 
 def test_publish_image_quality_validation(mock_redis_client):
     streamer = RedisImageStreamer()
@@ -19,6 +21,7 @@ def test_publish_image_quality_validation(mock_redis_client):
     with pytest.raises(ValueError, match="Quality must be between 1 and 100"):
         streamer.publish_image(image, quality=101)
 
+
 def test_image_streamer_uses_config_defaults(mock_redis_client):
     config = ImageStreamConfig(max_length=42, default_quality=75)
     streamer = RedisImageStreamer(stream_config=config)
@@ -27,8 +30,4 @@ def test_image_streamer_uses_config_defaults(mock_redis_client):
     streamer.publish_image(image)
 
     # Verify maxlen was used
-    mock_redis_client.xadd.assert_called_with(
-        streamer.stream_name,
-        ANY,
-        maxlen=42
-    )
+    mock_redis_client.xadd.assert_called_with(streamer.stream_name, ANY, maxlen=42)

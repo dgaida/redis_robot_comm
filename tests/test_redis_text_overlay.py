@@ -3,6 +3,7 @@
 import json
 import logging
 from unittest.mock import MagicMock, patch
+
 from redis_robot_comm.redis_text_overlay import TextType
 
 # ============================================================================
@@ -18,8 +19,9 @@ def test_init_default_parameters(text_overlay_manager):
 
 def test_init_custom_parameters(monkeypatch):
     """Test initialization with custom parameters."""
-    from redis_robot_comm.redis_text_overlay import RedisTextOverlayManager
     import redis
+
+    from redis_robot_comm.redis_text_overlay import RedisTextOverlayManager
 
     mock_redis = MagicMock()
     monkeypatch.setattr(redis, "Redis", mock_redis)

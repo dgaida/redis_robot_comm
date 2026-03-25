@@ -15,12 +15,14 @@ Controls:
     - Press 'f' to toggle FPS display
 """
 
-import cv2
-import numpy as np
 import argparse
 import time
 from datetime import datetime
 from pathlib import Path
+
+import cv2
+import numpy as np
+
 from redis_robot_comm import RedisImageStreamer
 
 

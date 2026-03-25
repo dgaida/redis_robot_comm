@@ -1,19 +1,19 @@
 """Redis-basierter Manager für Text-Overlays in Roboter-Videos. (Redis-based manager for text overlays in robot videos)."""
 
 import json
-import time
 import logging
-from typing import Optional, Dict, List, Any, Callable, cast
+import time
 from enum import Enum
-from redis.exceptions import RedisError
+from typing import Any, Callable, Dict, List, Optional, cast
 
 import redis
+from redis.exceptions import RedisError
 
-from .types import StreamID, TextOverlayDict
-from .exceptions import RedisConnectionError, RedisPublishError, RedisRetrievalError
-from .validators import validate_stream_name
-from .utils import retry_on_connection_error
 from .config import RedisConfig, get_redis_config
+from .exceptions import RedisConnectionError, RedisPublishError, RedisRetrievalError
+from .types import StreamID, TextOverlayDict
+from .utils import retry_on_connection_error
+from .validators import validate_stream_name
 
 logger = logging.getLogger(__name__)
 
@@ -242,7 +242,7 @@ class RedisTextOverlayManager:
                     logger.error(f"Error parsing text overlay: {e}")
                     continue
 
-            return texts
+            return cast(List[TextOverlayDict], texts)
 
         except RedisError as e:
             logger.error(f"Error getting latest texts from Redis: {e}")
