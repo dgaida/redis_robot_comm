@@ -265,6 +265,7 @@ class CameraRecorderWithAudio(BaseVideoRecorder):
 
 
 def main():
+    """Main entry point for camera recorder with audio."""
     parser = argparse.ArgumentParser(description="Record camera with audio")
     parser.add_argument("--camera", type=int, default=0)
     parser.add_argument("--stream", type=str, default="annotated_camera")

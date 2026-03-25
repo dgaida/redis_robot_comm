@@ -238,6 +238,7 @@ class RedisLabelManager:
 
                 for stream, msgs in messages:
                     for msg_id, fields in msgs:
+                        last_id = msg_id
                         try:
                             labels_json = fields.get("labels", "[]")
                             labels = json.loads(labels_json)
@@ -247,7 +248,6 @@ class RedisLabelManager:
                                 metadata = json.loads(fields["metadata"])
 
                             callback(labels, metadata)
-                            last_id = msg_id
 
                         except Exception as e:
                             logger.error(f"Error processing label update: {e}")

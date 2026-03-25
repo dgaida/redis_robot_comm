@@ -242,7 +242,7 @@ class RedisTextOverlayManager:
                     logger.error(f"Error parsing text overlay: {e}")
                     continue
 
-            return cast(List[TextOverlayDict], texts)
+            return texts
 
         except RedisError as e:
             logger.error(f"Error getting latest texts from Redis: {e}")
@@ -323,6 +323,7 @@ class RedisTextOverlayManager:
 
                 for stream, msgs in messages:
                     for msg_id, fields in msgs:
+                        last_id = msg_id
                         try:
                             text_data = {
                                 "id": msg_id,
@@ -335,8 +336,6 @@ class RedisTextOverlayManager:
                             # Filter by type if specified
                             if text_type is None or text_data["type"] == text_type.value:
                                 callback(text_data)
-
-                            last_id = msg_id
 
                         except Exception as e:
                             logger.error(f"Error processing text overlay: {e}")

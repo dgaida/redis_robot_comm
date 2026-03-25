@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 import cv2
 import logging
@@ -185,13 +186,14 @@ def test_get_latest_objects_old_message(message_broker, mock_redis_client):
     assert result == []
 
 
+from redis_robot_comm.exceptions import RedisRetrievalError, RedisPublishError
+
 def test_get_stream_stats_error(image_streamer, mock_redis_client):
     """Testet das Abrufen von Stream-Statistiken bei einem Fehler."""
     mock_redis_client.xinfo_stream.side_effect = Exception("Stream not found")
-    stats = image_streamer.get_stream_stats()
 
-    assert "error" in stats
-    assert "Stream not found" in stats["error"]
+    with pytest.raises(RedisRetrievalError, match="Stream not found"):
+        image_streamer.get_stream_stats()
 
 
 def test_decode_variable_image_grayscale(image_streamer):
@@ -221,9 +223,9 @@ def test_publish_objects_with_error(message_broker, mock_redis_client, sample_ob
     mock_redis_client.xadd.side_effect = Exception("Redis error")
 
     with caplog.at_level(logging.ERROR):
-        msg_id = message_broker.publish_objects(sample_objects)
+        with pytest.raises(RedisPublishError):
+            message_broker.publish_objects(sample_objects)
 
-    assert msg_id is None
     assert "Unexpected error publishing objects" in caplog.text
 
 
@@ -233,9 +235,9 @@ def test_get_objects_in_timerange_with_error(message_broker, mock_redis_client, 
 
     mock_redis_client.xrange.side_effect = Exception("Redis error")
     with caplog.at_level(logging.ERROR):
-        result = message_broker.get_objects_in_timerange(1000.0, 2000.0)
+        with pytest.raises(RedisRetrievalError):
+            message_broker.get_objects_in_timerange(1000.0, 2000.0)
 
-    assert result == []
     assert "Unexpected error getting objects in timerange" in caplog.text
 
 

@@ -1,5 +1,6 @@
 """Extended test suite for redis_robot_comm package to improve code coverage."""
 
+import pytest
 import numpy as np
 import cv2
 import json
@@ -149,6 +150,8 @@ def test_subscribe_objects_error_handling(message_broker, mock_redis_client, cap
     assert "Error processing message" in caplog.text
 
 
+from redis_robot_comm.exceptions import RedisRetrievalError
+
 def test_subscribe_objects_general_exception(message_broker, mock_redis_client, caplog):
     """Test general exception handling in subscribe_objects."""
     mock_redis_client.xread.side_effect = Exception("Connection error")
@@ -157,7 +160,8 @@ def test_subscribe_objects_general_exception(message_broker, mock_redis_client, 
         pass
 
     with caplog.at_level(logging.ERROR):
-        message_broker.subscribe_objects(callback)
+        with pytest.raises(RedisRetrievalError):
+            message_broker.subscribe_objects(callback)
 
     assert "Unexpected error in subscribe_objects" in caplog.text
 
@@ -269,10 +273,10 @@ def test_get_latest_image_with_error(image_streamer, mock_redis_client, caplog):
 
     mock_redis_client.xrevrange.side_effect = Exception("Redis error")
     with caplog.at_level(logging.ERROR):
-        result = image_streamer.get_latest_image()
+        with pytest.raises(RedisRetrievalError):
+            image_streamer.get_latest_image()
 
     assert "Unexpected error getting latest image" in caplog.text
-    assert result is None
 
 
 def test_subscribe_variable_images_callback(image_streamer, mock_redis_client):

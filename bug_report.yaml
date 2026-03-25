@@ -1,0 +1,60 @@
+- bug_id: BUG-001
+  severity: Critical
+  category: Functional
+  component: Subscription
+  files:
+    - redis_client.py
+    - redis_image_streamer.py
+    - redis_label_manager.py
+    - redis_text_overlay.py
+  description: Infinite loop in subscribe_* methods when callback fails.
+  impact: High CPU usage and system hang on message processing failure.
+
+- bug_id: BUG-002
+  severity: Medium
+  category: Code Quality
+  component: All Managers
+  files:
+    - redis_client.py
+    - redis_image_streamer.py
+    - redis_label_manager.py
+    - redis_text_overlay.py
+  description: 20 Mypy type errors related to Redis-py and union types.
+  impact: Type safety compromised; potential runtime errors.
+
+- bug_id: BUG-003
+  severity: Medium
+  category: Edge Case
+  component: ImageStreamer
+  files:
+    - redis_image_streamer.py
+  description: Missing validation for JPEG quality (1-100) and dimensions.
+  impact: Invalid parameters can lead to OpenCV crashes or poor performance.
+
+- bug_id: BUG-004
+  severity: Low
+  category: Code Quality
+  component: ImageStreamer
+  files:
+    - redis_image_streamer.py
+  description: ImageStreamConfig from config.py is underutilized.
+  impact: Inconsistent configuration management.
+
+- bug_id: BUG-005
+  severity: Medium
+  category: Functional
+  component: All Managers
+  files:
+    - redis_client.py
+    - redis_image_streamer.py
+  description: Inconsistent error handling; some Redis failures return None instead of raising exceptions.
+  impact: Suppressed errors make debugging difficult and can lead to silent data loss.
+
+- bug_id: BUG-006
+  severity: Low
+  category: Documentation
+  component: Repository
+  files:
+    - scripts/
+  description: Doc coverage (86.7%) is below the mandated 95% threshold.
+  impact: Lower code maintainability and clarity.

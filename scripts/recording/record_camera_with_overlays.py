@@ -453,6 +453,7 @@ class EnhancedCameraRecorder(BaseVideoRecorder):
         """Background thread for text updates."""
 
         def on_text_update(text_data):
+            """Callback for text updates from Redis."""
             text_type = text_data["type"]
             text = text_data["text"]
 
@@ -468,7 +469,16 @@ class EnhancedCameraRecorder(BaseVideoRecorder):
             print(f"Text subscription error: {e}")
 
     def process_frame(self, camera_frame: np.ndarray, annotated_frame: Optional[np.ndarray]) -> np.ndarray:
-        """Combine camera and annotated frames."""
+        """
+        Combine camera and annotated frames.
+
+        Args:
+            camera_frame: Frame from local camera.
+            annotated_frame: Frame from Redis image stream.
+
+        Returns:
+            Combined frame with text overlays.
+        """
         camera_frame = self.resize_frame(camera_frame)
 
         if annotated_frame is None:
@@ -543,6 +553,7 @@ class EnhancedCameraRecorder(BaseVideoRecorder):
 
 
 def main():
+    """Main entry point for Enhanced camera recorder."""
     parser = argparse.ArgumentParser(description="Enhanced camera recorder")
     parser.add_argument("--camera", type=int, default=0)
     parser.add_argument("--stream", type=str, default="annotated_camera")

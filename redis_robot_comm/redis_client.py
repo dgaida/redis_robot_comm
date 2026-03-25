@@ -135,7 +135,7 @@ class RedisMessageBroker:
             raise RedisPublishError(f"Failed to publish objects: {e}") from e
         except Exception as e:
             logger.error(f"Unexpected error publishing objects: {e}")
-            return None
+            raise RedisPublishError(f"Unexpected error during publish: {e}") from e
 
     def get_latest_objects(self, max_age_seconds: float = 2.0) -> List[ObjectDict]:
         """
@@ -184,7 +184,7 @@ class RedisMessageBroker:
             raise RedisRetrievalError(f"Failed to retrieve objects: {e}") from e
         except Exception as e:
             logger.error(f"Unexpected error getting latest objects: {e}")
-            return []
+            raise RedisRetrievalError(f"Unexpected error during retrieval: {e}") from e
 
     def get_objects_in_timerange(self, start_timestamp: float, end_timestamp: Optional[float] = None) -> List[ObjectDict]:
         """
@@ -227,7 +227,7 @@ class RedisMessageBroker:
             raise RedisRetrievalError(f"Failed to retrieve objects in timerange: {e}") from e
         except Exception as e:
             logger.error(f"Unexpected error getting objects in timerange: {e}")
-            return []
+            raise RedisRetrievalError(f"Unexpected error during timerange retrieval: {e}") from e
 
     def subscribe_objects(self, callback: Callable[[Dict[str, Any]], None]) -> None:
         """
@@ -249,6 +249,7 @@ class RedisMessageBroker:
 
                 for stream, msgs in messages:
                     for msg_id, fields in msgs:
+                        last_id = msg_id
                         try:
                             # Parse objects from JSON
                             objects_json = fields.get("objects", "[]")
@@ -267,8 +268,6 @@ class RedisMessageBroker:
                                 }
                             )
 
-                            last_id = msg_id
-
                         except Exception as e:
                             logger.error(f"Error processing message {msg_id}: {e}")
 
@@ -279,6 +278,7 @@ class RedisMessageBroker:
             raise RedisRetrievalError(f"Subscription failed: {e}") from e
         except Exception as e:
             logger.error(f"Unexpected error in subscribe_objects: {e}")
+            raise RedisRetrievalError(f"Unexpected error during subscription: {e}") from e
 
     def clear_stream(self) -> bool:
         """
@@ -296,16 +296,16 @@ class RedisMessageBroker:
             return bool(result)
         except Exception as e:
             logger.error(f"Error clearing stream: {e}")
-            return False
+            raise RedisRobotCommError(f"Failed to clear stream: {e}") from e
 
-    def get_stream_info(self) -> Optional[Dict[str, Any]]:
+    def get_stream_info(self) -> Dict[str, Any]:
         """
         Ruft Informationen über den Redis-Stream ab.
 
         Retrieve information about the Redis stream.
 
         Returns:
-            Optional[Dict[str, Any]]: Dictionary mit Stream-Informationen oder None, falls ein Fehler auftritt. (Dictionary with stream info, or None if an error occurs).
+            Dict[str, Any]: Dictionary mit Stream-Informationen. (Dictionary with stream info).
         """
         try:
             info = self.client.xinfo_stream(self.stream_name)
@@ -314,7 +314,7 @@ class RedisMessageBroker:
             return cast(Optional[Dict[str, Any]], info)
         except Exception as e:
             logger.error(f"Error getting stream info: {e}")
-            return None
+            raise RedisRetrievalError(f"Failed to get stream info: {e}") from e
 
     def test_connection(self) -> bool:
         """
