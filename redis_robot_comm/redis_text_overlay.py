@@ -1,19 +1,19 @@
 """Redis-basierter Manager für Text-Overlays in Roboter-Videos. (Redis-based manager for text overlays in robot videos)."""
 
 import json
-import time
 import logging
-from typing import Optional, Dict, List, Any, Callable, cast
+import time
 from enum import Enum
-from redis.exceptions import RedisError
+from typing import Any, Callable, Dict, List, Optional, cast
 
 import redis
+from redis.exceptions import RedisError
 
-from .types import StreamID, TextOverlayDict
-from .exceptions import RedisConnectionError, RedisPublishError, RedisRetrievalError
-from .validators import validate_stream_name
-from .utils import retry_on_connection_error
 from .config import RedisConfig, get_redis_config
+from .exceptions import RedisConnectionError, RedisPublishError, RedisRetrievalError
+from .types import StreamID, TextOverlayDict
+from .utils import retry_on_connection_error
+from .validators import validate_stream_name
 
 logger = logging.getLogger(__name__)
 
@@ -323,6 +323,7 @@ class RedisTextOverlayManager:
 
                 for stream, msgs in messages:
                     for msg_id, fields in msgs:
+                        last_id = msg_id
                         try:
                             text_data = {
                                 "id": msg_id,
@@ -335,8 +336,6 @@ class RedisTextOverlayManager:
                             # Filter by type if specified
                             if text_type is None or text_data["type"] == text_type.value:
                                 callback(text_data)
-
-                            last_id = msg_id
 
                         except Exception as e:
                             logger.error(f"Error processing text overlay: {e}")

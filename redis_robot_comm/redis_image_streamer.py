@@ -6,21 +6,22 @@ Ein Hilfsmittel zum Streamen von OpenCV-Bildern beliebiger Größe über einen R
 (A helper for streaming OpenCV images of arbitrary size through a Redis stream).
 """
 
-import redis
-import cv2
 import base64
 import json
-import time
 import logging
+import time
+from typing import Any, Callable, Dict, Optional, Tuple
+
+import cv2
 import numpy as np
-from typing import Optional, Tuple, Dict, Any, Callable
+import redis
 from redis.exceptions import RedisError
 
+from .config import ImageStreamConfig, RedisConfig, get_redis_config
+from .exceptions import InvalidImageError, RedisConnectionError, RedisPublishError, RedisRetrievalError
 from .types import ImageArray, ImageMetadata, StreamID
-from .exceptions import RedisConnectionError, RedisPublishError, RedisRetrievalError, InvalidImageError
-from .validators import validate_image, validate_stream_name
 from .utils import retry_on_connection_error
-from .config import RedisConfig, get_redis_config
+from .validators import validate_image, validate_stream_name
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,7 @@ class RedisImageStreamer:
         port: Optional[int] = None,
         stream_name: str = "robot_camera",
         config: Optional[RedisConfig] = None,
+        stream_config: Optional[ImageStreamConfig] = None,
     ) -> None:
         """
         Initialisiert den Redis Image Streamer.
@@ -55,6 +57,7 @@ class RedisImageStreamer:
             port (Optional[int]): Port des Redis-Servers. (Redis server port).
             stream_name (str): Name des Streams, der die Bild-Frames enthalten wird. (Name of the stream that will hold the image frames).
             config (Optional[RedisConfig]): Optionale RedisConfig-Instanz. (Optional RedisConfig instance).
+            stream_config (Optional[ImageStreamConfig]): Optionale ImageStreamConfig-Instanz. (Optional ImageStreamConfig instance).
 
         Raises:
             RedisConnectionError: Wenn die Verbindung zu Redis fehlschlägt. (If connection to Redis fails).
@@ -66,6 +69,7 @@ class RedisImageStreamer:
         host = host or config.host
         port = port or config.port
 
+        self.stream_config = stream_config or ImageStreamConfig()
         validate_stream_name(stream_name)
         self.stream_name: str = stream_name
         self.verbose: bool = False
@@ -91,8 +95,8 @@ class RedisImageStreamer:
         image: ImageArray,
         metadata: Optional[ImageMetadata] = None,
         compress_jpeg: bool = True,
-        quality: int = 80,
-        maxlen: int = 5,
+        quality: Optional[int] = None,
+        maxlen: Optional[int] = None,
     ) -> StreamID:
         """
         Veröffentlicht einen einzelnen Bild-Frame im Redis-Stream.
@@ -118,6 +122,18 @@ class RedisImageStreamer:
         except InvalidImageError as e:
             logger.error(f"Image validation failed: {e}")
             raise
+
+        # Use default quality if not specified
+        if quality is None:
+            quality = self.stream_config.default_quality
+
+        # Validate quality
+        if not (self.stream_config.min_quality <= quality <= self.stream_config.max_quality):
+            raise ValueError(f"Quality must be between {self.stream_config.min_quality} and {self.stream_config.max_quality}")
+
+        # Use default maxlen if not specified
+        if maxlen is None:
+            maxlen = self.stream_config.max_length
 
         timestamp = time.time()
 
@@ -191,7 +207,7 @@ class RedisImageStreamer:
             raise RedisRetrievalError(f"Failed to retrieve latest image: {e}") from e
         except Exception as e:
             logger.error(f"Unexpected error getting latest image: {e}")
-            return None
+            raise RedisRetrievalError(f"Unexpected error during image retrieval: {e}") from e
 
     def subscribe_variable_images(
         self,
@@ -222,22 +238,25 @@ class RedisImageStreamer:
 
                 for stream, msgs in messages:
                     for msg_id, fields in msgs:
-                        result = self._decode_variable_image(fields)
-                        if result:
-                            image, metadata = result
-
-                            # Prepare image info for callback
-                            image_info = {
-                                "width": image.shape[1],
-                                "height": image.shape[0],
-                                "channels": (image.shape[2] if len(image.shape) == 3 else 1),
-                                "timestamp": float(fields.get("timestamp", "0")),
-                                "compressed_size": int(fields.get("compressed_size", "0")),
-                                "original_size": int(fields.get("original_size", "0")),
-                            }
-
-                            callback(image, metadata, image_info)
                         last_id = msg_id
+                        try:
+                            result = self._decode_variable_image(fields)
+                            if result:
+                                image, metadata = result
+
+                                # Prepare image info for callback
+                                image_info = {
+                                    "width": image.shape[1],
+                                    "height": image.shape[0],
+                                    "channels": (image.shape[2] if len(image.shape) == 3 else 1),
+                                    "timestamp": float(fields.get("timestamp", "0")),
+                                    "compressed_size": int(fields.get("compressed_size", "0")),
+                                    "original_size": int(fields.get("original_size", "0")),
+                                }
+
+                                callback(image, metadata, image_info)
+                        except Exception as e:
+                            logger.error(f"Error processing image message {msg_id}: {e}")
 
         except KeyboardInterrupt:
             logger.info("Stopped subscribing to images")
@@ -306,6 +325,9 @@ class RedisImageStreamer:
 
         Returns:
             Dict[str, Any]: Dictionary mit Stream-Statistiken. (Dictionary with stream statistics).
+
+        Raises:
+            RedisRetrievalError: Wenn der Abruf der Stream-Statistiken fehlschlägt. (If retrieval of stream statistics fails).
         """
         try:
             info = self.client.xinfo_stream(self.stream_name)
@@ -315,4 +337,5 @@ class RedisImageStreamer:
                 "last_entry_id": info.get("last-entry", [None])[0],
             }
         except Exception as e:
-            return {"error": f"Stream not found or empty: {e}"}
+            logger.error(f"Error getting stream stats: {e}")
+            raise RedisRetrievalError(f"Stream not found or empty: {e}") from e

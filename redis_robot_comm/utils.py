@@ -1,9 +1,9 @@
 """Hilfsfunktionen für das redis_robot_comm Paket. (Utility functions for redis_robot_comm package)."""
 
-import time
 import functools
 import logging
-from typing import Callable, TypeVar, Any
+import time
+from typing import Any, Callable, TypeVar
 
 from .exceptions import RedisConnectionError
 

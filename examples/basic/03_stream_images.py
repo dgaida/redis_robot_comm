@@ -1,6 +1,7 @@
-from redis_robot_comm import RedisImageStreamer
-import numpy as np
 import cv2
+import numpy as np
+
+from redis_robot_comm import RedisImageStreamer
 
 
 def main():

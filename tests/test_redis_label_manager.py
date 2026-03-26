@@ -17,8 +17,9 @@ def test_init_default_parameters(label_manager):
 
 def test_init_custom_parameters(monkeypatch):
     """Test initialization with custom parameters."""
-    from redis_robot_comm.redis_label_manager import RedisLabelManager
     import redis
+
+    from redis_robot_comm.redis_label_manager import RedisLabelManager
 
     mock_redis = MagicMock()
     monkeypatch.setattr(redis, "Redis", mock_redis)

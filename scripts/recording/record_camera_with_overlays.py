@@ -6,15 +6,16 @@ Enhanced recording script with proper Unicode/emoji support.
 Now uses BaseVideoRecorder.
 """
 
-import cv2
-import numpy as np
 import argparse
-import time
 import threading
+import time
+from collections import deque
 from datetime import datetime
 from pathlib import Path
-from collections import deque
-from typing import Optional, List
+from typing import List, Optional
+
+import cv2
+import numpy as np
 
 from redis_robot_comm import RedisTextOverlayManager
 from scripts.recording.video_recorder_base import BaseVideoRecorder

@@ -1,4 +1,5 @@
 import logging
+
 from redis_robot_comm import RedisMessageBroker
 from redis_robot_comm.exceptions import RedisConnectionError
 

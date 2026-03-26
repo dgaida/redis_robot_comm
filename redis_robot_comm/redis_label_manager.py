@@ -1,18 +1,18 @@
 """Redis-basierter Manager für erkennbare Objektlabels. (Redis-based manager for detectable object labels)."""
 
 import json
-import time
 import logging
-from typing import Optional, Dict, Any, Callable, cast
-from redis.exceptions import RedisError
+import time
+from typing import Any, Callable, Dict, Optional, cast
 
 import redis
+from redis.exceptions import RedisError
 
-from .types import StreamID, LabelList
-from .exceptions import RedisConnectionError, RedisPublishError, RedisRetrievalError
-from .validators import validate_stream_name
-from .utils import retry_on_connection_error
 from .config import RedisConfig, get_redis_config
+from .exceptions import RedisConnectionError, RedisPublishError, RedisRetrievalError
+from .types import LabelList, StreamID
+from .utils import retry_on_connection_error
+from .validators import validate_stream_name
 
 logger = logging.getLogger(__name__)
 
@@ -238,6 +238,7 @@ class RedisLabelManager:
 
                 for stream, msgs in messages:
                     for msg_id, fields in msgs:
+                        last_id = msg_id
                         try:
                             labels_json = fields.get("labels", "[]")
                             labels = json.loads(labels_json)
@@ -247,7 +248,6 @@ class RedisLabelManager:
                                 metadata = json.loads(fields["metadata"])
 
                             callback(labels, metadata)
-                            last_id = msg_id
 
                         except Exception as e:
                             logger.error(f"Error processing label update: {e}")

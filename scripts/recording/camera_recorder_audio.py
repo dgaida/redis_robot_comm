@@ -7,16 +7,17 @@ Captures both video and audio (e.g., from TTS) into a single video file.
 Now uses BaseVideoRecorder.
 """
 
-import cv2
-import numpy as np
 import argparse
-import time
-import sounddevice as sd
 import queue
 import threading
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+
+import cv2
+import numpy as np
+import sounddevice as sd
 
 from scripts.recording.video_recorder_base import BaseVideoRecorder
 

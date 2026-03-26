@@ -1,10 +1,14 @@
 """Extended test suite for redis_robot_comm package to improve code coverage."""
 
-import numpy as np
-import cv2
 import json
 import logging
 from unittest.mock import MagicMock, patch
+
+import cv2
+import numpy as np
+import pytest
+
+from redis_robot_comm.exceptions import RedisRetrievalError
 
 # ============================================================================
 # RedisMessageBroker Extended Tests
@@ -157,7 +161,8 @@ def test_subscribe_objects_general_exception(message_broker, mock_redis_client, 
         pass
 
     with caplog.at_level(logging.ERROR):
-        message_broker.subscribe_objects(callback)
+        with pytest.raises(RedisRetrievalError):
+            message_broker.subscribe_objects(callback)
 
     assert "Unexpected error in subscribe_objects" in caplog.text
 
@@ -203,8 +208,9 @@ def test_test_connection_verbose(message_broker, mock_redis_client, caplog):
 
 def test_publish_image_invalid_input(image_streamer):
     """Test that publish_image raises ValueError for invalid input."""
-    from redis_robot_comm.exceptions import InvalidImageError
     import pytest
+
+    from redis_robot_comm.exceptions import InvalidImageError
 
     with pytest.raises(InvalidImageError, match="must be a NumPy array"):
         image_streamer.publish_image(None)
@@ -269,10 +275,10 @@ def test_get_latest_image_with_error(image_streamer, mock_redis_client, caplog):
 
     mock_redis_client.xrevrange.side_effect = Exception("Redis error")
     with caplog.at_level(logging.ERROR):
-        result = image_streamer.get_latest_image()
+        with pytest.raises(RedisRetrievalError):
+            image_streamer.get_latest_image()
 
     assert "Unexpected error getting latest image" in caplog.text
-    assert result is None
 
 
 def test_subscribe_variable_images_callback(image_streamer, mock_redis_client):
@@ -439,9 +445,10 @@ def test_custom_stream_name(mock_redis_client):
 
 def test_custom_redis_connection(monkeypatch):
     """Test creating clients with custom Redis connection parameters."""
+    import redis
+
     from redis_robot_comm.redis_client import RedisMessageBroker
     from redis_robot_comm.redis_image_streamer import RedisImageStreamer
-    import redis
 
     mock_redis = MagicMock()
     monkeypatch.setattr(redis, "Redis", mock_redis)
