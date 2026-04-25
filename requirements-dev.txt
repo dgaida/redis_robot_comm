@@ -8,7 +8,7 @@ pytest-cov
 pytest-benchmark
 mypy>=1.9.0
 mkdocs>=1.6.0
-mkdocs-material>=9.5.0
+mkdocs-material>=9.7.6
 mkdocstrings[python]>=0.25.0
 mkdocs-static-i18n>=1.2.0
 mkdocs-mermaid2-plugin>=1.1.0
