@@ -9,7 +9,7 @@ pytest-benchmark
 mypy>=1.9.0
 mkdocs>=1.6.0
 mkdocs-material>=9.5.0
-mkdocstrings[python]>=0.25.0
+mkdocstrings[python]>=0.30.1
 mkdocs-static-i18n>=1.2.0
 mkdocs-mermaid2-plugin>=1.1.0
 mike>=2.0.0
